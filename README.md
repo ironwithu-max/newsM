@@ -1,7 +1,8 @@
-# 머니노트 (AdSense 콘텐츠 사이트)
+# newsM (AdSense 콘텐츠 사이트)
 
-금융·보험·부동산·건강·IT리뷰 정보 사이트. Astro 기반 정적 사이트로 SEO·속도에
-최적화되어 있으며 Google AdSense 게재를 전제로 설계되었습니다.
+금융·보험·부동산·건강·IT리뷰 정보/후기 사이트 — https://newsm.ai.kr
+Astro 기반 정적 사이트로 SEO·속도에 최적화되어 있으며 Google AdSense 게재를
+전제로 설계되었습니다.
 
 ## 빠른 시작
 
