@@ -1,0 +1,43 @@
+---
+import { SITE } from '../consts';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <nav>
+      <a href="/about/">소개</a>
+      <a href="/contact/">연락처</a>
+      <a href="/privacy/">개인정보처리방침</a>
+    </nav>
+    <p>© {year} {SITE.name}. All rights reserved.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+    background: var(--bg-soft);
+  }
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 1.5rem 1.2rem 2.5rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  nav {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.6rem;
+  }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  nav a:hover {
+    color: var(--accent);
+  }
+</style>

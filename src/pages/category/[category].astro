@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { CATEGORIES, categoryLabel } from '../../consts';
+
+export async function getStaticPaths() {
+  return CATEGORIES.map((c) => ({ params: { category: c.slug } }));
+}
+
+const { category } = Astro.params;
+const label = categoryLabel(category);
+
+const posts = (
+  await getCollection(
+    'blog',
+    ({ data }) => !data.draft && data.category === category
+  )
+).sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+---
+
+<BaseLayout title={label} description={`${label} 관련 글 모음`}>
+  <h1>{label}</h1>
+
+  <AdSlot label="카테고리 상단 광고" />
+
+  {
+    posts.length === 0 ? (
+      <p>이 카테고리에는 아직 글이 없습니다.</p>
+    ) : (
+      posts.map((post) => (
+        <PostCard
+          slug={post.id}
+          title={post.data.title}
+          description={post.data.description}
+          category={post.data.category}
+          pubDate={post.data.pubDate}
+        />
+      ))
+    )
+  }
+</BaseLayout>

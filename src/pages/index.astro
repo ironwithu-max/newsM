@@ -1,0 +1,77 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { SITE, CATEGORIES } from '../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
+---
+
+<BaseLayout>
+  <section class="hero">
+    <h1>{SITE.name}</h1>
+    <p>{SITE.description}</p>
+    <div class="cats">
+      {CATEGORIES.map((c) => <a href={`/category/${c.slug}/`}>{c.label}</a>)}
+    </div>
+  </section>
+
+  <AdSlot label="상단 광고" />
+
+  <h2 class="section-title">최신 글</h2>
+  {
+    posts.length === 0 ? (
+      <p>아직 발행된 글이 없습니다. <code>src/content/blog/</code> 에 마크다운을 추가하세요.</p>
+    ) : (
+      posts.map((post) => (
+        <PostCard
+          slug={post.id}
+          title={post.data.title}
+          description={post.data.description}
+          category={post.data.category}
+          pubDate={post.data.pubDate}
+        />
+      ))
+    )
+  }
+</BaseLayout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 1.5rem 0 2rem;
+  }
+  .hero h1 {
+    font-size: 2rem;
+    margin: 0 0 0.5rem;
+  }
+  .hero p {
+    color: var(--muted);
+    margin: 0 0 1.2rem;
+  }
+  .cats {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .cats a {
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .cats a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .section-title {
+    font-size: 1.3rem;
+    margin: 0 0 0.5rem;
+  }
+</style>

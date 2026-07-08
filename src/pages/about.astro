@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+---
+
+<BaseLayout title="소개" description={`${SITE.name} 소개`}>
+  <div class="prose">
+    <h1>소개</h1>
+    <p>
+      <strong>{SITE.name}</strong>은(는) 금융·보험·부동산·건강·IT 분야의 실생활
+      정보를 이해하기 쉽게 정리하는 것을 목표로 합니다. 복잡한 제도와 상품,
+      용어를 일반 독자의 눈높이에서 풀어 설명합니다.
+    </p>
+
+    <h2>다루는 주제</h2>
+    <ul>
+      <li><strong>금융</strong> — 예적금, 대출, 신용, 절세, 재테크 기초</li>
+      <li><strong>보험</strong> — 실손·자동차·건강보험 비교와 선택 팁</li>
+      <li><strong>부동산</strong> — 청약, 전월세, 세금, 정책 변화</li>
+      <li><strong>건강</strong> — 생활 습관, 건강검진, 영양 정보</li>
+      <li><strong>IT리뷰</strong> — 앱·서비스·기기 사용기와 비교</li>
+    </ul>
+
+    <h2>운영 원칙</h2>
+    <p>
+      직접 조사하고 검증한 내용을 바탕으로 작성하며, 정보의 정확성을 위해
+      꾸준히 업데이트합니다. 본 사이트의 내용은 일반적인 정보 제공을
+      목적으로 하며, 투자·의료·법률 등 전문적인 판단이 필요한 사안은 반드시
+      전문가와 상담하시기 바랍니다.
+    </p>
+
+    <h2>연락</h2>
+    <p>
+      제휴·문의는 <a href={`mailto:${SITE.email}`}>{SITE.email}</a> 또는
+      <a href="/contact/">연락처 페이지</a>를 이용해 주세요.
+    </p>
+  </div>
+</BaseLayout>

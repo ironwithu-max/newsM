@@ -1,0 +1,25 @@
+---
+import { categoryLabel } from '../consts';
+
+interface Props {
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  pubDate: Date;
+}
+
+const { slug, title, description, category, pubDate } = Astro.props;
+const dateStr = pubDate.toLocaleDateString('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<a class="post-card" href={`/blog/${slug}/`}>
+  <span class="post-card__cat">{categoryLabel(category)}</span>
+  <h2 class="post-card__title">{title}</h2>
+  <p class="post-card__desc">{description}</p>
+  <div class="post-card__date">{dateStr}</div>
+</a>

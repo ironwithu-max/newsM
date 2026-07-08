@@ -1,0 +1,62 @@
+---
+// 애드센스 광고 슬롯 (재사용 컴포넌트)
+//  - SITE.adsenseClient 가 설정돼 있을 때만 실제 광고를 렌더링합니다.
+//  - 미설정 시(개발 중)에는 자리표시 박스를 보여줍니다.
+import { SITE } from '../consts';
+
+interface Props {
+  /** 애드센스에서 발급한 광고 단위 slot 번호 */
+  slot?: string;
+  /** auto | fluid | rectangle 등 */
+  format?: string;
+  label?: string;
+}
+
+const { slot = '', format = 'auto', label = '광고' } = Astro.props;
+const enabled = SITE.adsenseClient.startsWith('ca-pub-');
+---
+
+{
+  enabled ? (
+    <div class="ad-slot">
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client={SITE.adsenseClient}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive="true"
+      />
+      <script is:inline>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+  ) : (
+    <div class="ad-slot ad-slot--placeholder" aria-hidden="true">
+      <span>{label} 자리 (승인 후 표시)</span>
+    </div>
+  )
+}
+
+<style>
+  .ad-slot {
+    margin: 2rem 0;
+    min-height: 90px;
+  }
+  .ad-slot--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(0, 0, 0, 0.02) 10px,
+      rgba(0, 0, 0, 0.02) 20px
+    );
+  }
+</style>
