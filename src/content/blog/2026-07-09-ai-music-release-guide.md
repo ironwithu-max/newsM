@@ -15,7 +15,17 @@ tags: ['AI음악', '수노', 'Suno', 'AI작곡', '음원발매']
 - 스트리밍 사이트에 **앨범 6개 발매**
 - 유튜브 채널에 **80여 곡** 직접 제작·업로드
 
-음악 전공도, 작곡 경험도 없었지만 AI 도구의 도움으로 가능했습니다. 실제 결과물은 아래에서 확인할 수 있습니다.
+음악 전공도, 작곡 경험도 없었지만 AI 도구의 도움으로 가능했습니다.
+
+심지어 노래뿐 아니라 **앨범 커버(재킷)까지 AI로 제작**했습니다. 아래는 실제로 발매·업로드한 앨범 커버 예시입니다.
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.75rem;margin:1.5rem 0;">
+  <img src="/images/album-blue-escape.webp" alt="AI로 만든 앨범 BLUE ESCAPE 재킷" loading="lazy" style="width:100%;border-radius:8px;" />
+  <img src="/images/album-queen.webp" alt="AI로 만든 앨범 QUEEN 재킷" loading="lazy" style="width:100%;border-radius:8px;" />
+  <img src="/images/album-run-away.webp" alt="AI로 만든 싱글 RUN AWAY 재킷" loading="lazy" style="width:100%;border-radius:8px;" />
+</div>
+
+실제 음악은 아래 영상에서 확인할 수 있습니다.
 
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:1.5rem 0;border-radius:8px;">
   <iframe src="https://www.youtube.com/embed/dbLjP1D3kHQ" title="AI로 만든 음악 예시" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
