@@ -22,9 +22,13 @@ export const SITE = {
 /** 카테고리 정의 (slug ↔ 한글 라벨) */
 export const CATEGORIES = [
   { slug: 'finance', label: '금융' },
-  { slug: 'insurance', label: '보험' },
+  { slug: 'economy', label: '경제' },
   { slug: 'realestate', label: '부동산' },
+  { slug: 'insurance', label: '보험' },
+  { slug: 'tax', label: '세금·절세' },
+  { slug: 'subsidy', label: '정부지원금' },
   { slug: 'health', label: '건강' },
+  { slug: 'life', label: '생활정보' },
   { slug: 'it', label: 'IT리뷰' },
 ] as const;
 
