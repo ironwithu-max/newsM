@@ -23,14 +23,17 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
     posts.length === 0 ? (
       <p>아직 발행된 글이 없습니다. <code>src/content/blog/</code> 에 마크다운을 추가하세요.</p>
     ) : (
-      posts.map((post) => (
-        <PostCard
-          slug={post.id}
-          title={post.data.title}
-          description={post.data.description}
-          category={post.data.category}
-          pubDate={post.data.pubDate}
-        />
+      posts.map((post, i) => (
+        <Fragment>
+          <PostCard
+            slug={post.id}
+            title={post.data.title}
+            description={post.data.description}
+            category={post.data.category}
+            pubDate={post.data.pubDate}
+          />
+          {i === 2 && <AdSlot label="목록 중간 광고" />}
+        </Fragment>
       ))
     )
   }
