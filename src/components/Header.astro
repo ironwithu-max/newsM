@@ -4,7 +4,10 @@ import { SITE, CATEGORIES } from '../consts';
 
 <header class="site-header">
   <div class="wrap">
-    <a href="/" class="brand">{SITE.name}</a>
+    <a href="/" class="brand">
+      <span class="brand-tag">돈이 되는 정보</span>
+      <span class="brand-name">news<span class="brand-m">M</span></span>
+    </a>
     <nav>
       <ul>
         {
@@ -38,10 +41,24 @@ import { SITE, CATEGORIES } from '../consts';
     flex-wrap: wrap;
   }
   .brand {
-    font-weight: 800;
-    font-size: 1.25rem;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
     color: var(--fg);
     text-decoration: none;
+    white-space: nowrap;
+  }
+  .brand-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .brand-name {
+    font-weight: 800;
+    font-size: 1.25rem;
+  }
+  .brand-m {
+    color: var(--accent);
   }
   nav ul {
     display: flex;
