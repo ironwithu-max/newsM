@@ -1,25 +1,25 @@
 ---
-import { SITE, CATEGORIES } from '../consts';
+import { CATEGORIES } from '../consts';
 ---
 
 <header class="site-header">
-  <div class="wrap">
+  <div class="brand-row">
     <a href="/" class="brand">
       <span class="brand-tag">돈이 되는 정보</span>
       <span class="brand-name">news<span class="brand-m">M</span></span>
     </a>
-    <nav>
-      <ul>
-        {
-          CATEGORIES.map((c) => (
-            <li>
-              <a href={`/category/${c.slug}/`}>{c.label}</a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
   </div>
+  <nav class="nav">
+    <ul>
+      {
+        CATEGORIES.map((c) => (
+          <li>
+            <a href={`/category/${c.slug}/`}>{c.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
 </header>
 
 <style>
@@ -30,15 +30,12 @@ import { SITE, CATEGORIES } from '../consts';
     top: 0;
     z-index: 10;
   }
-  .wrap {
+  /* 브랜드 — 가운데 정렬 */
+  .brand-row {
     max-width: 860px;
     margin: 0 auto;
-    padding: 0.9rem 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
+    padding: 0.55rem 1.2rem 0.35rem;
+    text-align: center;
   }
   .brand {
     display: inline-flex;
@@ -55,28 +52,41 @@ import { SITE, CATEGORIES } from '../consts';
   }
   .brand-name {
     font-weight: 800;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
   }
   .brand-m {
     color: var(--accent);
   }
-  nav ul {
+  /* 카테고리 — 한 줄 가로 스크롤 */
+  .nav {
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+  }
+  .nav::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+  .nav ul {
     display: flex;
+    flex-wrap: nowrap;
     gap: 0.25rem;
     list-style: none;
     margin: 0;
-    padding: 0;
-    flex-wrap: wrap;
+    padding: 0.15rem 1.2rem 0.5rem;
+    width: max-content;
   }
-  nav a {
+  .nav li {
+    flex: 0 0 auto;
+  }
+  .nav a {
     display: inline-block;
     padding: 0.35rem 0.6rem;
     border-radius: 6px;
     color: var(--muted);
     text-decoration: none;
     font-size: 0.95rem;
+    white-space: nowrap;
   }
-  nav a:hover {
+  .nav a:hover {
     background: var(--accent-soft);
     color: var(--accent);
   }

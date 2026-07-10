@@ -16,7 +16,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
     <p>{SITE.description}</p>
   </section>
 
-  <AdSlot label="상단 광고" />
+  <AdSlot label="상단 광고" format="horizontal" height={100} />
 
   <h2 class="section-title">최신 글</h2>
   {
@@ -39,19 +39,19 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 <style>
   .hero {
     text-align: center;
-    padding: 1rem 0 1.3rem;
+    padding: 0.3rem 0 0.7rem;
   }
   .hero h1 {
-    font-size: 1.6rem;
-    margin: 0 0 0.4rem;
+    font-size: 1.45rem;
+    margin: 0 0 0.3rem;
   }
   .hero p {
     color: var(--muted);
     margin: 0;
-    font-size: 0.98rem;
+    font-size: 0.95rem;
   }
   .section-title {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     margin: 0 0 0.5rem;
   }
 </style>
