@@ -32,6 +32,11 @@ tags: ['변액연금보험', '연금보험', '노후준비', '투자', '보험']
 - 약 14개월 후(2026년 7월 기준) 해약환급금: 약 **1,663만 원**
 - **환급률 158.4% → 약 +58%**
 
+<figure style="margin:1.5rem 0;text-align:center;">
+  <img src="/images/metlife-annuity.webp" alt="변액연금보험 해약환급금 조회 화면 — 환급률 158.4%" loading="lazy" style="max-width:320px;width:100%;border-radius:10px;border:1px solid var(--border);" />
+  <figcaption style="font-size:0.85rem;color:var(--muted);margin-top:0.5rem;">실제 앱 화면 — 납입 1,050만 원 → 해약환급금 1,663만 원(환급률 158.4%)</figcaption>
+</figure>
+
 <div class="callout">
   <p><strong>⚠️ 꼭 짚고 갈 점</strong> — 이 수익은 <strong>특정 펀드가 그 기간 시장이 좋아서</strong> 난 결과입니다. <strong>일반적·평균적 성과가 아니며 보장되지 않습니다.</strong> 시장이 나쁘면 <strong>원금 손실</strong>도 얼마든지 가능합니다. "가입하면 58% 번다"가 절대 아닙니다.</p>
 </div>
