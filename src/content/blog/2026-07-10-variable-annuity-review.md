@@ -32,9 +32,12 @@ tags: ['변액연금보험', '연금보험', '노후준비', '투자', '보험']
 - 약 14개월 후(2026년 7월 기준) 해약환급금: 약 **1,663만 원**
 - **환급률 158.4% → 약 +58%**
 
-<figure style="margin:1.5rem 0;text-align:center;">
-  <img src="/images/metlife-annuity.webp" alt="변액연금보험 해약환급금 조회 화면 — 환급률 158.4%" loading="lazy" style="max-width:320px;width:100%;border-radius:10px;border:1px solid var(--border);" />
-  <figcaption style="font-size:0.85rem;color:var(--muted);margin-top:0.5rem;">실제 앱 화면 — 납입 1,050만 원 → 해약환급금 1,663만 원(환급률 158.4%)</figcaption>
+<figure style="margin:1.5rem 0;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.75rem;">
+    <img src="/images/metlife-annuity.webp" alt="변액연금보험 해약환급금 조회 — 환급률 158.4%" loading="lazy" style="width:100%;border-radius:10px;border:1px solid var(--border);" />
+    <img src="/images/metlife-annuity-contract.webp" alt="변액연금보험 계약 내역 — 일시납 1,000만 원" loading="lazy" style="width:100%;border-radius:10px;border:1px solid var(--border);" />
+  </div>
+  <figcaption style="font-size:0.85rem;color:var(--muted);margin-top:0.5rem;text-align:center;">실제 앱 화면 — (좌) 환급률 158.4% · (우) 일시납 계약 내역</figcaption>
 </figure>
 
 <div class="callout">
