@@ -116,3 +116,28 @@ img {
 .prose th {
   background: var(--bg-soft);
 }
+
+/* 본문 핵심어 강조 (형광펜) — 절제해서 한 단락에 1~2개만 */
+.prose .hl,
+.prose mark {
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 0.05em 0.28em;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+/* 핵심 요약 콜아웃 박스 */
+.prose .callout {
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 8px;
+  padding: 0.85rem 1.1rem;
+  margin: 1.5rem 0;
+}
+.prose .callout p {
+  margin: 0.3rem 0;
+}
+.prose .callout strong {
+  color: var(--accent);
+}
