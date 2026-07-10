@@ -10,6 +10,10 @@ tags: ['AI작사', 'ChatGPT', '가사쓰는법', 'AI음악', '작사']
 
 > 이 글은 [AI로 음악 만들어 발매하는 법](/blog/2026-07-09-ai-music-release-guide/) 시리즈의 세부 편입니다.
 
+<div class="callout">
+  <p><strong>핵심</strong> — ChatGPT는 '대신 써주는' 게 아니라 <strong>아이디어를 확장·다듬는 파트너</strong>. 주제·감정을 정하고 <strong>대화로 다듬어</strong> 내 가사로 만드세요.</p>
+</div>
+
 ## 왜 가사는 직접(또는 반직접) 쓰는 게 좋을까
 
 - **감정 전달**: 자동 생성 가사보다 내가 다듬은 가사가 훨씬 와닿습니다.

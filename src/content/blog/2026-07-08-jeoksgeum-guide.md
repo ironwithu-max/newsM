@@ -6,6 +6,10 @@ category: 'finance'
 tags: ['예금', '적금', '재테크', '금리']
 ---
 
+<div class="callout">
+  <p><strong>핵심</strong> — 목돈이면 <strong>예금</strong>, 습관이면 <strong>적금</strong>. 장기라면 복리가 유리하고, 우대금리는 '내가 채울 수 있는지'가 관건. 이자엔 <strong>15.4% 세금</strong>이 붙습니다.</p>
+</div>
+
 ## 예금과 적금, 뭐가 다를까?
 
 가장 기본적인 저축 상품이지만 의외로 헷갈리는 두 가지입니다.

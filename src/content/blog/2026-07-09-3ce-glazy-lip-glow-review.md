@@ -10,6 +10,10 @@ tags: ['3CE', '립글로우', '립밤', '뷰티후기', '데일리립']
 
 ![3CE 글레이지 립 글로우 본체](/images/3ce-glazy-lip-glow.webp)
 
+<div class="callout">
+  <p><strong>핵심</strong> — <strong>촉촉함·부드러운 발림·은은한 색·가성비</strong>가 장점. 단, 지속력과 고발색은 아쉬울 수 있어 <strong>데일리 립</strong>으로 추천합니다.</p>
+</div>
+
 ## 제품 기본 정보
 
 | 항목 | 내용 |
