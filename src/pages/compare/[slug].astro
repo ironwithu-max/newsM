@@ -1,0 +1,125 @@
+---
+import PlatformLayout from '../../layouts/PlatformLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import ProductCardP from '../../components/ProductCardP.astro';
+import { categories, getCategory } from '../../platform/categories';
+import { getProductsByCategory } from '../../platform/products';
+
+export function getStaticPaths() {
+  return categories.map((c) => ({ params: { slug: c.slug } }));
+}
+
+const { slug } = Astro.params;
+const category = getCategory(slug!);
+if (!category) return Astro.redirect('/404');
+
+const items = getProductsByCategory(slug!);
+const allTags = Array.from(new Set(items.flatMap((p) => p.tags)));
+---
+
+<PlatformLayout
+  title={`${category.name} 비교`}
+  description={category.description}
+>
+  <div class="plat">
+    <nav class="crumbs">
+      <a href="/">홈</a><span class="sep">/</span><span>{category.name}</span>
+    </nav>
+
+    <div style="display:flex;gap:1rem;align-items:flex-start;margin-top:1rem">
+      <span style="font-size:2.2rem">{category.icon}</span>
+      <div>
+        <h1 style="margin:0;font-size:1.7rem">{category.name} 비교</h1>
+        <p style="color:var(--muted);margin:0.5rem 0 0;max-width:40rem">
+          {category.description}
+        </p>
+      </div>
+    </div>
+
+    <div style="margin-top:1.6rem">
+      <div class="toolbar">
+        <div class="tagfilter" id="tagfilter">
+          {
+            allTags.map((tag) => (
+              <button class="tagfilter__btn" type="button" data-tag={tag} aria-pressed="false">
+                {tag}
+              </button>
+            ))
+          }
+        </div>
+        <select class="sortselect" id="sortselect" aria-label="정렬 기준">
+          <option value="recommended">추천순</option>
+          <option value="priceAsc">보험료 낮은순</option>
+          <option value="priceDesc">보험료 높은순</option>
+          <option value="rating">평점 높은순</option>
+        </select>
+      </div>
+
+      <p class="result-count">총 <b id="resultCount">{items.length}</b>개 상품</p>
+
+      <div class="prod-grid" id="prodGrid">
+        {items.map((p) => <ProductCardP product={p} />)}
+      </div>
+      <p class="empty" id="emptyMsg" hidden>
+        선택한 조건에 맞는 상품이 없습니다. 필터를 조정해 보세요.
+      </p>
+
+      <AdSlot label="비교 하단 광고" format="horizontal" height={100} />
+    </div>
+  </div>
+</PlatformLayout>
+
+<script>
+  const grid = document.getElementById('prodGrid')!;
+  const cards = Array.from(grid.querySelectorAll<HTMLElement>('.prod-card'));
+  const tagBtns = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('#tagfilter .tagfilter__btn')
+  );
+  const sortSel = document.getElementById('sortselect') as HTMLSelectElement;
+  const countEl = document.getElementById('resultCount')!;
+  const emptyMsg = document.getElementById('emptyMsg') as HTMLElement;
+
+  const active = new Set<string>();
+
+  function apply() {
+    // 필터
+    let visible = 0;
+    cards.forEach((card) => {
+      const tags = (card.dataset.tags ?? '').split(',');
+      const ok = [...active].every((t) => tags.includes(t));
+      card.hidden = !ok;
+      if (ok) visible++;
+    });
+    countEl.textContent = String(visible);
+    emptyMsg.hidden = visible !== 0;
+
+    // 정렬 (보이는 카드만 재배치)
+    const mode = sortSel.value;
+    const shown = cards.filter((c) => !c.hidden);
+    shown.sort((a, b) => {
+      const pa = +a.dataset.premium!, pb = +b.dataset.premium!;
+      const ra = +a.dataset.rating!, rb = +b.dataset.rating!;
+      const sa = +a.dataset.score!, sb = +b.dataset.score!;
+      switch (mode) {
+        case 'priceAsc': return pa - pb;
+        case 'priceDesc': return pb - pa;
+        case 'rating': return rb - ra;
+        default: return sb - sa;
+      }
+    });
+    shown.forEach((c) => grid.appendChild(c));
+  }
+
+  tagBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag!;
+      const pressed = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', String(!pressed));
+      if (pressed) active.delete(tag);
+      else active.add(tag);
+      apply();
+    });
+  });
+  sortSel.addEventListener('change', apply);
+  apply();
+</script>

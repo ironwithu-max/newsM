@@ -1,0 +1,300 @@
+import type { Product } from "./types";
+
+// 예시용 상품 데이터 (실제 상품·보험료와 무관, 데모 목적)
+export const products: Product[] = [
+  // ── 자동차보험 ──
+  {
+    id: "auto-hanul-smart",
+    categorySlug: "auto",
+    insurerId: "ins-hanul",
+    name: "한울 스마트 다이렉트",
+    monthlyPremium: 62000,
+    coverageSummary: "대인 무한 · 대물 3억",
+    highlights: ["블랙박스 할인 12%", "마일리지 특약", "24시간 긴급출동"],
+    coverages: [
+      { label: "대인배상 I·II", value: "무한" },
+      { label: "대물배상", value: "3억원" },
+      { label: "자기신체사고", value: "1.5억원" },
+      { label: "자기차량손해", value: "차량가액" },
+      { label: "무보험차상해", value: "5억원" },
+    ],
+    minAge: 21,
+    maxAge: 75,
+    tags: ["다이렉트", "블랙박스할인", "마일리지"],
+    rating: 4.4,
+    reviewCount: 1820,
+  },
+  {
+    id: "auto-saerom-basic",
+    categorySlug: "auto",
+    insurerId: "ins-saerom",
+    name: "새롬 착한자동차",
+    monthlyPremium: 54000,
+    coverageSummary: "대인 무한 · 대물 2억",
+    highlights: ["저렴한 보험료", "자녀할인", "안전운전 캐시백"],
+    coverages: [
+      { label: "대인배상 I·II", value: "무한" },
+      { label: "대물배상", value: "2억원" },
+      { label: "자기신체사고", value: "1억원" },
+      { label: "자기차량손해", value: "차량가액" },
+      { label: "무보험차상해", value: "2억원" },
+    ],
+    minAge: 26,
+    maxAge: 70,
+    tags: ["가성비", "자녀할인"],
+    rating: 4.1,
+    reviewCount: 940,
+  },
+  {
+    id: "auto-miraero-premium",
+    categorySlug: "auto",
+    insurerId: "ins-miraero",
+    name: "미래로 프리미엄 안심",
+    monthlyPremium: 78000,
+    coverageSummary: "대인 무한 · 대물 5억",
+    highlights: ["렌터카 지원 30일", "신차가액 보상", "전담 손해사정"],
+    coverages: [
+      { label: "대인배상 I·II", value: "무한" },
+      { label: "대물배상", value: "5억원" },
+      { label: "자기신체사고", value: "3억원" },
+      { label: "자기차량손해", value: "신차가액" },
+      { label: "무보험차상해", value: "5억원" },
+    ],
+    minAge: 21,
+    maxAge: 80,
+    tags: ["프리미엄", "렌터카지원", "신차보상"],
+    rating: 4.6,
+    reviewCount: 610,
+  },
+
+  // ── 실손의료비 ──
+  {
+    id: "medical-daon-4th",
+    categorySlug: "medical",
+    insurerId: "ins-daon",
+    name: "다온 4세대 실손의료비",
+    monthlyPremium: 13500,
+    coverageSummary: "입원·통원 최대 5천만원",
+    highlights: ["표준화 실손", "비급여 특약 선택", "온라인 간편가입"],
+    coverages: [
+      { label: "상해입원", value: "5,000만원" },
+      { label: "질병입원", value: "5,000만원" },
+      { label: "통원(외래)", value: "회당 20만원" },
+      { label: "처방조제", value: "건당 10만원" },
+      { label: "자기부담률", value: "급여 20% / 비급여 30%" },
+    ],
+    minAge: 0,
+    maxAge: 65,
+    tags: ["4세대", "저렴", "온라인가입"],
+    rating: 4.2,
+    reviewCount: 3120,
+  },
+  {
+    id: "medical-hana-family",
+    categorySlug: "medical",
+    insurerId: "ins-hana",
+    name: "하나로 온가족 실손",
+    monthlyPremium: 16800,
+    coverageSummary: "가족 통합 · 최대 5천만원",
+    highlights: ["가족 통합할인 10%", "비급여 도수치료 포함", "무사고 환급"],
+    coverages: [
+      { label: "상해입원", value: "5,000만원" },
+      { label: "질병입원", value: "5,000만원" },
+      { label: "통원(외래)", value: "회당 25만원" },
+      { label: "비급여 도수·주사", value: "연 350만원" },
+      { label: "자기부담률", value: "급여 20% / 비급여 30%" },
+    ],
+    minAge: 0,
+    maxAge: 60,
+    tags: ["가족할인", "도수치료", "환급형"],
+    rating: 4.3,
+    reviewCount: 1450,
+  },
+
+  // ── 암보험 ──
+  {
+    id: "cancer-miraero-plus",
+    categorySlug: "cancer",
+    insurerId: "ins-miraero",
+    name: "미래로 암보장 플러스",
+    monthlyPremium: 28000,
+    coverageSummary: "일반암 진단금 5천만원",
+    highlights: ["유사암 100% 보장", "비갱신형", "재진단암 추가보장"],
+    coverages: [
+      { label: "일반암 진단금", value: "5,000만원" },
+      { label: "유사암 진단금", value: "1,000만원" },
+      { label: "항암방사선치료", value: "500만원" },
+      { label: "암입원일당", value: "1일 10만원" },
+      { label: "갱신 여부", value: "비갱신형(만기까지 동일)" },
+    ],
+    minAge: 15,
+    maxAge: 65,
+    tags: ["비갱신형", "유사암보장", "고액진단금"],
+    rating: 4.5,
+    reviewCount: 2210,
+  },
+  {
+    id: "cancer-hanul-value",
+    categorySlug: "cancer",
+    insurerId: "ins-hanul",
+    name: "한울 실속 암보험",
+    monthlyPremium: 17500,
+    coverageSummary: "일반암 진단금 3천만원",
+    highlights: ["부담 없는 보험료", "갱신형", "소액암 포함"],
+    coverages: [
+      { label: "일반암 진단금", value: "3,000만원" },
+      { label: "유사암 진단금", value: "600만원" },
+      { label: "항암방사선치료", value: "300만원" },
+      { label: "암입원일당", value: "1일 5만원" },
+      { label: "갱신 여부", value: "갱신형(15년)" },
+    ],
+    minAge: 20,
+    maxAge: 70,
+    tags: ["갱신형", "실속형"],
+    rating: 4.0,
+    reviewCount: 780,
+  },
+
+  // ── 종신·정기보험 ──
+  {
+    id: "life-hana-whole",
+    categorySlug: "life",
+    insurerId: "ins-hana",
+    name: "하나로 평생지킴 종신",
+    monthlyPremium: 92000,
+    coverageSummary: "사망보험금 1억원 (평생)",
+    highlights: ["평생 사망보장", "해지환급금 적립", "특약으로 보장 확장"],
+    coverages: [
+      { label: "일반사망", value: "1억원" },
+      { label: "재해사망", value: "2억원" },
+      { label: "보장기간", value: "종신(평생)" },
+      { label: "해지환급", value: "적립형" },
+    ],
+    minAge: 20,
+    maxAge: 65,
+    tags: ["종신", "환급형"],
+    rating: 4.1,
+    reviewCount: 520,
+  },
+  {
+    id: "life-daon-term",
+    categorySlug: "life",
+    insurerId: "ins-daon",
+    name: "다온 정기보험 (20년)",
+    monthlyPremium: 21000,
+    coverageSummary: "사망보험금 1억원 (20년)",
+    highlights: ["저렴한 순수보장", "가장의 소득 대체", "간편심사"],
+    coverages: [
+      { label: "일반사망", value: "1억원" },
+      { label: "재해사망", value: "1.5억원" },
+      { label: "보장기간", value: "20년 만기" },
+      { label: "해지환급", value: "순수보장형(무·저해지)" },
+    ],
+    minAge: 20,
+    maxAge: 60,
+    tags: ["정기", "순수보장", "가성비"],
+    rating: 4.3,
+    reviewCount: 690,
+  },
+
+  // ── 여행자보험 ──
+  {
+    id: "travel-saerom-global",
+    categorySlug: "travel",
+    insurerId: "ins-saerom",
+    name: "새롬 글로벌 여행안심",
+    monthlyPremium: 12000, // 3~5일 기준 1회 예시
+    coverageSummary: "해외치료비 최대 1억",
+    highlights: ["항공지연 보상", "휴대품 손해", "당일 가입"],
+    coverages: [
+      { label: "해외 상해치료", value: "1억원" },
+      { label: "해외 질병치료", value: "5,000만원" },
+      { label: "휴대품 손해", value: "100만원" },
+      { label: "항공기 지연", value: "30만원" },
+      { label: "배상책임", value: "3,000만원" },
+    ],
+    minAge: 0,
+    maxAge: 79,
+    tags: ["해외여행", "당일가입", "항공지연"],
+    rating: 4.4,
+    reviewCount: 1980,
+  },
+
+  // ── 주택화재보험 ──
+  {
+    id: "home-hanul-safe",
+    categorySlug: "home",
+    insurerId: "ins-hanul",
+    name: "한울 우리집 안심화재",
+    monthlyPremium: 9800,
+    coverageSummary: "화재·누수·배상 통합",
+    highlights: ["누수 배상책임", "임시거주비", "자가·전세 모두"],
+    coverages: [
+      { label: "화재 손해", value: "건물 3억 / 가재 5천만원" },
+      { label: "급배수 누수 배상", value: "1억원" },
+      { label: "일상생활 배상책임", value: "1억원" },
+      { label: "임시거주비", value: "월 200만원" },
+    ],
+    minAge: 19,
+    maxAge: 99,
+    tags: ["누수배상", "전세가능"],
+    rating: 4.2,
+    reviewCount: 430,
+  },
+
+  // ── 운전자보험 ──
+  {
+    id: "driver-miraero-guard",
+    categorySlug: "driver",
+    insurerId: "ins-miraero",
+    name: "미래로 운전자 가드",
+    monthlyPremium: 14500,
+    coverageSummary: "벌금·변호사비·합의금",
+    highlights: ["교통사고처리지원금", "변호사선임비", "면허취소 위로금"],
+    coverages: [
+      { label: "교통사고처리지원금", value: "최대 3,000만원" },
+      { label: "변호사선임비용", value: "5,000만원" },
+      { label: "벌금", value: "2,000만원(대인)" },
+      { label: "면허정지·취소 위로금", value: "일당 지급" },
+    ],
+    minAge: 21,
+    maxAge: 75,
+    tags: ["형사합의금", "변호사비"],
+    rating: 4.3,
+    reviewCount: 1120,
+  },
+
+  // ── 치아보험 ──
+  {
+    id: "dental-hana-smile",
+    categorySlug: "dental",
+    insurerId: "ins-hana",
+    name: "하나로 스마일 치아",
+    monthlyPremium: 19800,
+    coverageSummary: "임플란트·크라운 보장",
+    highlights: ["임플란트 개당 150만원", "보철·보존 치료", "면책 90일"],
+    coverages: [
+      { label: "임플란트", value: "개당 150만원" },
+      { label: "크라운(보철)", value: "개당 50만원" },
+      { label: "충전·신경치료", value: "치아당 지급" },
+      { label: "면책기간", value: "90일(보철 1년 감액)" },
+    ],
+    minAge: 15,
+    maxAge: 70,
+    tags: ["임플란트", "보철"],
+    rating: 4.0,
+    reviewCount: 560,
+  },
+];
+
+export function getProductsByCategory(slug: string): Product[] {
+  return products.filter((p) => p.categorySlug === slug);
+}
+
+export function getProduct(id: string): Product | undefined {
+  return products.find((p) => p.id === id);
+}
+
+export function countByCategory(slug: string): number {
+  return products.reduce((n, p) => (p.categorySlug === slug ? n + 1 : n), 0);
+}

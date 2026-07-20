@@ -1,0 +1,111 @@
+---
+import PlatformLayout from '../layouts/PlatformLayout.astro';
+
+export const prerender = false;
+---
+
+<PlatformLayout
+  title="내 보험 관리"
+  description="신청하신 상담 내역과 진행 상태를 휴대폰 번호로 조회하세요."
+>
+  <div class="plat" style="padding-top:1.6rem;max-width:640px">
+    <nav class="crumbs">
+      <a href="/">홈</a><span class="sep">/</span><span>내 보험 관리</span>
+    </nav>
+
+    <h1 style="font-size:1.8rem;margin:0.8rem 0 0.3rem">내 보험 관리</h1>
+    <p style="color:var(--muted);margin:0">
+      상담 신청 시 입력한 휴대폰 번호로 <b>상담 내역과 진행 상태</b>를 조회할 수 있습니다.
+    </p>
+
+    <form id="lookupForm" class="form-card" style="margin-top:1.4rem">
+      <div class="form-field" style="margin-bottom:0.9rem">
+        <label for="phone">휴대폰 번호</label>
+        <input class="input" id="phone" name="phone" type="tel" inputmode="numeric" placeholder="010-1234-5678" />
+        <p class="field-error" id="phoneErr" hidden></p>
+      </div>
+      <button type="submit" class="btn btn--primary btn--block" id="lookupBtn">상담 내역 조회</button>
+    </form>
+
+    <div id="result" style="margin-top:1.4rem"></div>
+
+    <p class="disclaimer">
+      ※ 데모 단계에서는 휴대폰 번호만으로 조회합니다. 실제 서비스에서는 본인 확인(SMS 인증 등)
+      절차를 거쳐 개인정보를 보호합니다.
+    </p>
+  </div>
+</PlatformLayout>
+
+<script>
+  const form = document.getElementById('lookupForm') as HTMLFormElement;
+  const btn = document.getElementById('lookupBtn') as HTMLButtonElement;
+  const phoneErr = document.getElementById('phoneErr') as HTMLElement;
+  const result = document.getElementById('result') as HTMLElement;
+
+  const STATUS: Record<string, { label: string; color: string; bg: string }> = {
+    new: { label: '접수', color: '#2563eb', bg: '#eff4ff' },
+    contacted: { label: '연락 예정/진행중', color: '#b45309', bg: '#fef3c7' },
+    done: { label: '상담 완료', color: '#15803d', bg: '#dcfce7' },
+    canceled: { label: '취소', color: '#6b7280', bg: '#f1f5f9' },
+  };
+
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleString('ko-KR', {
+      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    phoneErr.hidden = true;
+    result.innerHTML = '';
+    const phone = (document.getElementById('phone') as HTMLInputElement).value.trim();
+
+    btn.disabled = true;
+    btn.textContent = '조회 중...';
+    try {
+      const res = await fetch('/api/my-lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+
+      if (!data.ok) {
+        phoneErr.textContent = data.error ?? '조회에 실패했습니다.';
+        phoneErr.hidden = false;
+        return;
+      }
+
+      if (data.count === 0) {
+        result.innerHTML =
+          '<div class="empty">해당 번호로 접수된 상담 내역이 없습니다. <a href="/consult/">상담 신청하기</a></div>';
+        return;
+      }
+
+      const rows = data.items
+        .map((it: any) => {
+          const s = STATUS[it.status] ?? STATUS.new;
+          return `
+            <div class="cov-row" style="align-items:flex-start">
+              <div>
+                <div style="font-weight:700">${it.category}</div>
+                ${it.product ? `<div class="ad-sub" style="color:var(--muted);font-size:0.85rem">${it.product}</div>` : ''}
+                <div style="color:var(--muted);font-size:0.8rem;margin-top:0.2rem">${fmt(it.createdAt)}</div>
+              </div>
+              <span style="background:${s.bg};color:${s.color};font-weight:700;font-size:0.82rem;padding:0.25rem 0.6rem;border-radius:999px;white-space:nowrap">${s.label}</span>
+            </div>`;
+        })
+        .join('');
+
+      result.innerHTML = `
+        <h2 style="font-size:1.15rem;margin:0 0 0.6rem">상담 내역 <span style="color:var(--point)">${data.count}</span>건</h2>
+        <div class="cov-table">${rows}</div>`;
+    } catch {
+      phoneErr.textContent = '네트워크 오류가 발생했습니다. 다시 시도해 주세요.';
+      phoneErr.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '상담 내역 조회';
+    }
+  });
+</script>

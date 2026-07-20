@@ -1,0 +1,128 @@
+---
+import PlatformLayout from '../layouts/PlatformLayout.astro';
+import ProductCardP from '../components/ProductCardP.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { products } from '../platform/products';
+import { getCategory } from '../platform/categories';
+import { getInsurer } from '../platform/insurers';
+
+// 각 상품의 검색 대상 텍스트(상품명·보험사·카테고리·태그·강점·요약)
+const indexed = products.map((p) => {
+  const cat = getCategory(p.categorySlug);
+  const insurer = getInsurer(p.insurerId);
+  const haystack = [
+    p.name,
+    p.coverageSummary,
+    cat?.name,
+    cat?.tagline,
+    insurer?.name,
+    ...p.tags,
+    ...p.highlights,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return { product: p, haystack };
+});
+---
+
+<PlatformLayout
+  title="보험 상품 검색"
+  description="원하는 조건으로 보험 상품을 검색해 비교하세요."
+>
+  <div class="plat" style="padding-top:1.6rem">
+    <form class="searchbar" action="/search" method="get" role="search" style="max-width:640px">
+      <input
+        type="text"
+        name="q"
+        id="searchInput"
+        placeholder="찾는 보험 검색 (예: 30대 직장인 실손보험 추천)"
+        aria-label="보험 상품 검색"
+      />
+      <button type="submit" class="searchbar__btn">✨ AI 검색</button>
+    </form>
+
+    <h1 style="font-size:1.5rem;margin:1.6rem 0 0.2rem">
+      검색 결과<span id="queryLabel" style="color:var(--point)"></span>
+    </h1>
+    <p class="result-count">총 <b id="resultCount">{products.length}</b>개 상품</p>
+
+    <div class="prod-grid" id="searchGrid">
+      {
+        indexed.map(({ product, haystack }) => (
+          <div data-search={haystack} data-cat={product.categorySlug}>
+            <ProductCardP product={product} />
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="empty" id="searchEmpty" hidden>
+      검색어에 맞는 상품이 없습니다. 다른 키워드로 검색하거나
+      <a href="/#categories">보험 종류에서 찾아보세요</a>.
+    </p>
+
+    <AdSlot label="검색 하단 광고" format="horizontal" height={100} />
+  </div>
+</PlatformLayout>
+
+<script>
+  const grid = document.getElementById('searchGrid')!;
+  const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-search]'));
+  const countEl = document.getElementById('resultCount')!;
+  const emptyEl = document.getElementById('searchEmpty') as HTMLElement;
+  const queryLabel = document.getElementById('queryLabel')!;
+  const input = document.getElementById('searchInput') as HTMLInputElement;
+
+  // 카테고리 동의어(자연어 검색 보조)
+  const synonyms: Record<string, string[]> = {
+    자동차: ['auto'], 차: ['auto'], 운전: ['auto', 'driver'],
+    실손: ['medical'], 실비: ['medical'], 의료: ['medical'], 병원: ['medical'],
+    암: ['cancer'], 진단: ['cancer'],
+    사망: ['life'], 종신: ['life'], 정기: ['life'], 가장: ['life'],
+    여행: ['travel'], 해외: ['travel'],
+    화재: ['home'], 주택: ['home'], 누수: ['home'], 전세: ['home'],
+    치아: ['dental'], 임플란트: ['dental'], 크라운: ['dental'],
+  };
+
+  function apply(qRaw: string) {
+    const q = qRaw.trim().toLowerCase();
+    queryLabel.textContent = q ? ` · "${qRaw.trim()}"` : '';
+
+    if (!q) {
+      cards.forEach((c) => (c.hidden = false));
+      countEl.textContent = String(cards.length);
+      emptyEl.hidden = true;
+      return;
+    }
+
+    const tokens = q.split(/\s+/).filter(Boolean);
+    // 동의어로 유추되는 카테고리
+    const catHints = new Set<string>();
+    tokens.forEach((t) => {
+      for (const [k, cats] of Object.entries(synonyms)) {
+        if (t.includes(k)) cats.forEach((c) => catHints.add(c));
+      }
+    });
+
+    let visible = 0;
+    cards.forEach((card) => {
+      const hay = card.dataset.search ?? '';
+      const cat = card.dataset.cat ?? '';
+      // 토큰이 텍스트에 포함되거나, 동의어로 유추된 카테고리와 일치하면 노출
+      const textMatch = tokens.some((t) => hay.includes(t));
+      const catMatch = catHints.has(cat);
+      const ok = textMatch || catMatch;
+      card.hidden = !ok;
+      if (ok) visible++;
+    });
+    countEl.textContent = String(visible);
+    emptyEl.hidden = visible !== 0;
+  }
+
+  // URL의 q로 초기 필터
+  const params = new URLSearchParams(location.search);
+  const q0 = params.get('q') ?? '';
+  input.value = q0;
+  apply(q0);
+</script>

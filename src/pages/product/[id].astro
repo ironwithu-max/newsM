@@ -1,0 +1,77 @@
+---
+import PlatformLayout from '../../layouts/PlatformLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { products, getProduct } from '../../platform/products';
+import { getInsurer } from '../../platform/insurers';
+import { getCategory } from '../../platform/categories';
+import { monthly, stars } from '../../platform/format';
+
+export function getStaticPaths() {
+  return products.map((p) => ({ params: { id: p.id } }));
+}
+
+const { id } = Astro.params;
+const product = getProduct(id!);
+if (!product) return Astro.redirect('/404');
+
+const insurer = getInsurer(product.insurerId);
+const category = getCategory(product.categorySlug);
+---
+
+<PlatformLayout
+  title={`${product.name} — ${category?.name ?? '보험'}`}
+  description={`${product.name} · ${product.coverageSummary} · ${monthly(product.monthlyPremium)}`}
+>
+  <div class="plat" style="max-width:820px">
+    <nav class="crumbs">
+      <a href="/">홈</a><span class="sep">/</span>
+      {category && (<><a href={`/compare/${category.slug}/`}>{category.name}</a><span class="sep">/</span></>)}
+      <span>{product.name}</span>
+    </nav>
+
+    <div class="detail">
+      <div style="display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center">
+        <span class="chip">{insurer?.name}</span>
+        <span class="rating">{stars(product.rating)}<span>리뷰 {product.reviewCount.toLocaleString()}건</span></span>
+      </div>
+
+      <h1 style="margin:0.6rem 0 0.2rem;font-size:1.7rem">{product.name}</h1>
+      <p style="color:var(--muted);margin:0">{product.coverageSummary}</p>
+
+      <div class="detail__price">
+        <div>
+          <span class="price__label">예상 보험료</span>
+          <p style="font-size:2rem;font-weight:800;margin:0.1rem 0">{monthly(product.monthlyPremium)}</p>
+          <p style="color:var(--muted);font-size:0.8rem;margin:0">
+            가입연령 {product.minAge}~{product.maxAge}세 · 조건별 예시 금액
+          </p>
+        </div>
+        <a href={`/consult/?product=${product.id}`} class="btn btn--primary">이 상품 상담 신청</a>
+      </div>
+
+      <h2 style="font-size:1.2rem;margin:1.6rem 0 0">핵심 강점</h2>
+      <ul class="hl-list">
+        {product.highlights.map((h) => <li>✓ {h}</li>)}
+      </ul>
+
+      <h2 style="font-size:1.2rem;margin:1.8rem 0 0">보장 상세</h2>
+      <dl class="cov-table">
+        {
+          product.coverages.map((c) => (
+            <div class="cov-row">
+              <dt>{c.label}</dt>
+              <dd>{c.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <p class="disclaimer">
+        ※ 표시된 보험료와 보장 내용은 데모용 예시입니다. 실제 가입 조건·보험료는 연령,
+        건강상태, 특약 구성에 따라 달라지며 설계사 상담을 통해 확정됩니다.
+      </p>
+    </div>
+
+    <AdSlot label="상세 하단 광고" format="horizontal" height={100} />
+  </div>
+</PlatformLayout>

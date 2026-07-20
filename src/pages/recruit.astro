@@ -1,0 +1,128 @@
+---
+import PlatformLayout from '../layouts/PlatformLayout.astro';
+
+const roles = [
+  {
+    icon: '🧑‍💼',
+    title: '보험설계사 (FP)',
+    tags: ['미경험 환영', '자격증 취득 지원', '성과급'],
+    body: '고객에게 맞는 보험을 설계·상담하는 전문가로 성장할 수 있도록 교육과 정착 지원을 제공합니다. 자유로운 근무와 노력에 비례한 보상.',
+  },
+  {
+    icon: '📈',
+    title: '영업관리자',
+    tags: ['조직 운영', '검증된 사업모델', '리더십'],
+    body: '설계사 조직을 운영·육성하는 관리자 포지션. 체계적인 시스템과 데이터 기반 영업 지원으로 안정적인 사업 기반을 제공합니다.',
+  },
+  {
+    icon: '💻',
+    title: '플랫폼·운영 지원',
+    tags: ['정규직', '주5일', '상담 운영'],
+    body: '상담 리드 관리, 고객 응대, 콘텐츠 운영 등 플랫폼 운영을 지원하는 내근직. 성장하는 인슈어테크 서비스를 함께 만들어갑니다.',
+  },
+];
+---
+
+<PlatformLayout
+  title="입사안내"
+  description="Life news와 함께 성장할 보험설계사·영업관리자·운영 인재를 모십니다."
+>
+  <div class="plat" style="padding-top:1.6rem;max-width:900px">
+    <nav class="crumbs">
+      <a href="/">홈</a><span class="sep">/</span><span>입사안내</span>
+    </nav>
+
+    <h1 style="font-size:1.8rem;margin:0.8rem 0 0.3rem">입사안내</h1>
+    <p style="color:var(--muted);margin:0;max-width:44rem">
+      Life news는 도전하는 인재와 함께 성장합니다. 보험 전문가로 성장할 기회부터 검증된
+      사업 모델까지, 당신의 커리어를 응원합니다.
+    </p>
+
+    <div class="rc-grid">
+      {
+        roles.map((r) => (
+          <div class="rc-card">
+            <span class="rc-icon">{r.icon}</span>
+            <h2 class="rc-title">{r.title}</h2>
+            <ul class="rc-tags">
+              {r.tags.map((t) => (
+                <li>{t}</li>
+              ))}
+            </ul>
+            <p class="rc-body">{r.body}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="rc-cta">
+      <div>
+        <h3 style="margin:0 0 0.2rem">입사 문의</h3>
+        <p style="margin:0;color:var(--muted)">지원·문의는 연락처 페이지를 통해 접수해 주세요.</p>
+      </div>
+      <a href="/contact/" class="btn btn--primary">입사 문의하기</a>
+    </div>
+
+    <p class="disclaimer">※ 본 페이지는 데모용 예시입니다.</p>
+  </div>
+</PlatformLayout>
+
+<style>
+  .rc-grid {
+    margin-top: 1.8rem;
+    display: grid;
+    gap: 1rem;
+  }
+  @media (min-width: 720px) {
+    .rc-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .rc-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem;
+  }
+  .rc-icon {
+    font-size: 1.8rem;
+  }
+  .rc-title {
+    margin: 0.6rem 0 0.5rem;
+    font-size: 1.15rem;
+  }
+  .rc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0;
+    margin: 0 0 0.7rem;
+    list-style: none;
+  }
+  .rc-tags li {
+    background: var(--brand-soft);
+    color: var(--brand);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+  }
+  .rc-body {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+    font-size: 0.95rem;
+  }
+  .rc-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem 1.6rem;
+    margin-top: 1.6rem;
+  }
+</style>

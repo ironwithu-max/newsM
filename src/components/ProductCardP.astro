@@ -1,0 +1,43 @@
+---
+import type { Product } from '../platform/types';
+import { getInsurer } from '../platform/insurers';
+import { monthly, stars } from '../platform/format';
+
+interface Props {
+  product: Product;
+}
+const { product } = Astro.props;
+const insurer = getInsurer(product.insurerId);
+const score = product.rating * product.reviewCount;
+---
+
+<article
+  class="prod-card"
+  data-tags={product.tags.join(',')}
+  data-premium={product.monthlyPremium}
+  data-rating={product.rating}
+  data-score={score}
+>
+  <div class="prod-card__top">
+    <span class="chip">{insurer?.name ?? '보험사'}</span>
+    <span class="rating">{stars(product.rating)}<span>({product.reviewCount.toLocaleString()})</span></span>
+  </div>
+
+  <h3 class="prod-card__name">{product.name}</h3>
+  <p class="prod-card__summary">{product.coverageSummary}</p>
+
+  <ul class="tags">
+    {product.highlights.map((h) => <li>{h}</li>)}
+  </ul>
+
+  <div class="prod-card__foot">
+    <div>
+      <span class="price__label">예상 보험료</span>
+      <p class="price__value">{monthly(product.monthlyPremium)}</p>
+    </div>
+    <div class="prod-card__actions">
+      <a href={`/product/${product.id}/`} class="btn btn--ghost btn--sm">상세</a>
+      <a href={`/consult/?product=${product.id}`} class="btn btn--primary btn--sm">상담 신청</a>
+    </div>
+  </div>
+</article>

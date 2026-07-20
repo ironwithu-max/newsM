@@ -1,0 +1,286 @@
+---
+import '../styles/global.css';
+import { ADMIN_COOKIE, isValidSession, isAdminConfigured } from '../platform/adminAuth';
+import { getSupabaseAdmin } from '../platform/supabaseServer';
+import { getCategory } from '../platform/categories';
+import { getProduct } from '../platform/products';
+
+// 리드(개인정보) 조회 화면 — 항상 온디맨드 렌더링, 인덱싱 금지
+export const prerender = false;
+
+const configured = isAdminConfigured();
+const authed = configured && isValidSession(Astro.cookies.get(ADMIN_COOKIE)?.value);
+
+interface LeadRow {
+  id: string;
+  name: string;
+  phone: string;
+  category_slug: string;
+  product_id: string | null;
+  birth_year: number | null;
+  gender: string | null;
+  message: string | null;
+  status: string;
+  created_at: string;
+}
+
+let leads: LeadRow[] = [];
+let dbError: string | null = null;
+
+if (authed) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    dbError = 'Supabase가 연결되지 않았습니다. (.env 확인)';
+  } else {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) dbError = error.message;
+    else leads = (data ?? []) as LeadRow[];
+  }
+}
+
+const STATUS = {
+  new: { label: '접수', color: '#2563eb', bg: '#eff4ff' },
+  contacted: { label: '연락함', color: '#b45309', bg: '#fef3c7' },
+  done: { label: '완료', color: '#15803d', bg: '#dcfce7' },
+  canceled: { label: '취소', color: '#6b7280', bg: '#f1f5f9' },
+} as const;
+
+const counts = {
+  total: leads.length,
+  new: leads.filter((l) => l.status === 'new').length,
+  contacted: leads.filter((l) => l.status === 'contacted').length,
+  done: leads.filter((l) => l.status === 'done').length,
+};
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleString('ko-KR', {
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>관리자 — 상담 리드</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+  </head>
+  <body class="admin">
+    <header class="ad-header">
+      <div class="ad-wrap">
+        <strong>🛡️ 보험비교 · 관리자</strong>
+        {authed && (
+          <form method="POST" action="/api/admin-logout" style="margin:0">
+            <button class="ad-logout" type="submit">로그아웃</button>
+          </form>
+        )}
+      </div>
+    </header>
+
+    <main class="ad-wrap ad-main">
+      {
+        !configured ? (
+          <div class="ad-card ad-notice">
+            <h1>관리자 비밀번호가 설정되지 않았습니다</h1>
+            <p><code>.env</code> 파일에 <code>ADMIN_PASSWORD</code>를 설정한 뒤 다시 접속하세요.</p>
+          </div>
+        ) : !authed ? (
+          <div class="ad-card ad-login">
+            <h1>관리자 로그인</h1>
+            <p>상담 리드 조회를 위해 비밀번호를 입력하세요.</p>
+            <form id="loginForm">
+              <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
+              <button type="submit">로그인</button>
+            </form>
+            <p class="ad-err" id="loginErr" hidden></p>
+          </div>
+        ) : (
+          <Fragment>
+            <h1 class="ad-title">상담 리드</h1>
+            <div class="ad-stats">
+              <div><b>{counts.total}</b>전체</div>
+              <div><b>{counts.new}</b>접수(new)</div>
+              <div><b>{counts.contacted}</b>연락함</div>
+              <div><b>{counts.done}</b>완료</div>
+            </div>
+
+            {dbError ? (
+              <div class="ad-card ad-notice"><p class="ad-err">DB 오류: {dbError}</p></div>
+            ) : leads.length === 0 ? (
+              <div class="ad-card"><p>아직 접수된 상담이 없습니다.</p></div>
+            ) : (
+              <div class="ad-tablewrap">
+                <table class="ad-table">
+                  <thead>
+                    <tr>
+                      <th>접수일시</th>
+                      <th>이름</th>
+                      <th>연락처</th>
+                      <th>보험/상품</th>
+                      <th>출생·성별</th>
+                      <th>문의</th>
+                      <th>상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leads.map((l) => {
+                      const product = l.product_id ? getProduct(l.product_id) : undefined;
+                      return (
+                        <tr>
+                          <td class="ad-nowrap">{fmtDate(l.created_at)}</td>
+                          <td>{l.name}</td>
+                          <td class="ad-nowrap">{l.phone}</td>
+                          <td>
+                            <span class="ad-badge">{getCategory(l.category_slug)?.name ?? l.category_slug}</span>
+                            {product && <div class="ad-sub">{product.name}</div>}
+                          </td>
+                          <td class="ad-nowrap">
+                            {l.birth_year ?? '-'}
+                            {l.gender ? ` · ${l.gender === 'male' ? '남' : '여'}` : ''}
+                          </td>
+                          <td class="ad-msg">{l.message ?? '-'}</td>
+                          <td>
+                            <select
+                              class="ad-status"
+                              data-id={l.id}
+                              data-current={l.status}
+                              style={`color:${STATUS[l.status as keyof typeof STATUS]?.color};background:${STATUS[l.status as keyof typeof STATUS]?.bg}`}
+                            >
+                              {Object.entries(STATUS).map(([k, v]) => (
+                                <option value={k} selected={k === l.status}>{v.label}</option>
+                              ))}
+                            </select>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Fragment>
+        )
+      }
+    </main>
+
+    <style>
+      .admin { background: var(--bg-soft); min-height: 100vh; margin: 0; }
+      .ad-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.2rem; }
+      .ad-header { background: var(--bg); border-bottom: 1px solid var(--border); }
+      .ad-header .ad-wrap {
+        display: flex; align-items: center; justify-content: space-between; height: 3.6rem;
+      }
+      .ad-logout {
+        border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+        border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-size: 0.9rem;
+      }
+      .ad-logout:hover { border-color: var(--accent); color: var(--accent); }
+      .ad-main { padding-top: 1.6rem; padding-bottom: 3rem; }
+      .ad-title { margin: 0 0 1rem; font-size: 1.5rem; }
+      .ad-card {
+        background: var(--bg); border: 1px solid var(--border);
+        border-radius: 14px; padding: 1.4rem; max-width: 420px;
+      }
+      .ad-login h1, .ad-notice h1 { font-size: 1.3rem; margin: 0 0 0.4rem; }
+      .ad-login p, .ad-notice p { color: var(--muted); margin: 0 0 1rem; }
+      .ad-login form { display: flex; gap: 0.5rem; }
+      .ad-login input {
+        flex: 1; border: 1px solid var(--border); border-radius: 8px;
+        padding: 0.6rem 0.75rem; font-size: 1rem; font-family: inherit;
+      }
+      .ad-login input:focus { outline: none; border-color: var(--accent); }
+      .ad-login button {
+        background: var(--accent); color: #fff; border: none; border-radius: 8px;
+        padding: 0.6rem 1.1rem; font-weight: 700; cursor: pointer;
+      }
+      .ad-err { color: #ef4444; font-size: 0.88rem; margin: 0.6rem 0 0; }
+      .ad-stats { display: flex; gap: 1.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+      .ad-stats div { color: var(--muted); font-size: 0.85rem; }
+      .ad-stats b { display: block; font-size: 1.4rem; color: var(--fg); }
+      .ad-tablewrap {
+        background: var(--bg); border: 1px solid var(--border);
+        border-radius: 14px; overflow-x: auto;
+      }
+      .ad-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+      .ad-table th, .ad-table td {
+        text-align: left; padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .ad-table th {
+        background: var(--bg-soft); color: var(--muted); font-weight: 700;
+        white-space: nowrap; position: sticky; top: 0;
+      }
+      .ad-table tr:last-child td { border-bottom: none; }
+      .ad-nowrap { white-space: nowrap; }
+      .ad-badge {
+        background: var(--accent-soft); color: var(--accent); font-size: 0.78rem;
+        font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px;
+      }
+      .ad-sub { color: var(--muted); font-size: 0.8rem; margin-top: 0.3rem; }
+      .ad-msg { max-width: 240px; color: var(--fg); }
+      .ad-status {
+        border: 1px solid var(--border); border-radius: 8px; padding: 0.35rem 0.5rem;
+        font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+    </style>
+
+    <script>
+      // 로그인
+      const loginForm = document.getElementById('loginForm') as HTMLFormElement | null;
+      if (loginForm) {
+        const err = document.getElementById('loginErr') as HTMLElement;
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          err.hidden = true;
+          const pw = (document.getElementById('pw') as HTMLInputElement).value;
+          const res = await fetch('/api/admin-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw }),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            location.reload();
+          } else {
+            err.textContent = data.error ?? '로그인 실패';
+            err.hidden = false;
+          }
+        });
+      }
+
+      // 상태 변경
+      document.querySelectorAll<HTMLSelectElement>('.ad-status').forEach((sel) => {
+        sel.addEventListener('change', async () => {
+          const id = sel.dataset.id!;
+          const prev = sel.dataset.current!;
+          const status = sel.value;
+          sel.disabled = true;
+          const res = await fetch('/api/lead-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status }),
+          });
+          const data = await res.json();
+          sel.disabled = false;
+          if (data.ok) {
+            sel.dataset.current = status;
+          } else {
+            alert('상태 변경 실패: ' + (data.error ?? ''));
+            sel.value = prev;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

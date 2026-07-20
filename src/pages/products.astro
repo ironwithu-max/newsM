@@ -1,0 +1,112 @@
+---
+import PlatformLayout from '../layouts/PlatformLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { categories } from '../platform/categories';
+import { countByCategory } from '../platform/products';
+
+// 생명보험(생명·건강) vs 손해보험 분류
+const LIFE = ['life', 'cancer', 'medical'];
+const NONLIFE = ['auto', 'home', 'driver', 'travel', 'dental'];
+
+const bySlug = (slugs: string[]) =>
+  slugs.map((s) => categories.find((c) => c.slug === s)).filter(Boolean) as typeof categories;
+
+const lifeCats = bySlug(LIFE);
+const nonlifeCats = bySlug(NONLIFE);
+---
+
+<PlatformLayout
+  title="상품안내"
+  description="생명보험·손해보험 상품을 종류별로 안내합니다. 원하는 보험을 골라 비교하세요."
+>
+  <div class="plat" style="padding-top:1.6rem">
+    <nav class="crumbs">
+      <a href="/">홈</a><span class="sep">/</span><span>상품안내</span>
+    </nav>
+
+    <h1 style="font-size:1.8rem;margin:0.8rem 0 0.3rem">상품안내</h1>
+    <p style="color:var(--muted);margin:0;max-width:44rem">
+      생명보험과 손해보험 상품을 종류별로 안내합니다. 카테고리를 선택하면 여러 상품을
+      보험료·보장 기준으로 비교할 수 있습니다.
+    </p>
+
+    <!-- 생명보험 -->
+    <section id="life" class="prodcat">
+      <div class="prodcat__head">
+        <span class="prodcat__icon" style="background:#fde4f0;color:var(--point)">💚</span>
+        <div>
+          <h2 class="prodcat__title">생명보험상품</h2>
+          <p class="prodcat__desc">사람의 생명·건강과 관련된 보장 (사망·암·의료비 등)</p>
+        </div>
+      </div>
+      <div class="cat-grid">
+        {
+          lifeCats.map((c) => (
+            <a class="cat-card" href={`/compare/${c.slug}/`}>
+              <span class="cat-card__icon">{c.icon}</span>
+              <h3 class="cat-card__name">{c.name}</h3>
+              <p class="cat-card__tag">{c.tagline}</p>
+              <span class="cat-card__count">상품 {countByCategory(c.slug)}개 비교 →</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <AdSlot label="상품안내 중간 광고" format="horizontal" height={100} />
+
+    <!-- 손해보험 -->
+    <section id="nonlife" class="prodcat">
+      <div class="prodcat__head">
+        <span class="prodcat__icon" style="background:var(--brand-soft);color:var(--brand)">📊</span>
+        <div>
+          <h2 class="prodcat__title">손해보험 상품</h2>
+          <p class="prodcat__desc">재산·배상 등 사고로 인한 손해를 보장 (자동차·화재·여행 등)</p>
+        </div>
+      </div>
+      <div class="cat-grid">
+        {
+          nonlifeCats.map((c) => (
+            <a class="cat-card" href={`/compare/${c.slug}/`}>
+              <span class="cat-card__icon">{c.icon}</span>
+              <h3 class="cat-card__name">{c.name}</h3>
+              <p class="cat-card__tag">{c.tagline}</p>
+              <span class="cat-card__count">상품 {countByCategory(c.slug)}개 비교 →</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</PlatformLayout>
+
+<style>
+  .prodcat {
+    margin-top: 2.4rem;
+    scroll-margin-top: 6rem;
+  }
+  .prodcat__head {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+  .prodcat__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 12px;
+    font-size: 1.5rem;
+  }
+  .prodcat__title {
+    margin: 0;
+    font-size: 1.35rem;
+  }
+  .prodcat__desc {
+    margin: 0.2rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+</style>

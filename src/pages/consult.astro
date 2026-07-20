@@ -1,0 +1,167 @@
+---
+import PlatformLayout from '../layouts/PlatformLayout.astro';
+import { categories } from '../platform/categories';
+import { getProduct } from '../platform/products';
+
+// 쿼리(?product=) 서버 프리필을 위해 온디맨드 렌더링
+export const prerender = false;
+
+const productId = Astro.url.searchParams.get('product') ?? '';
+const product = productId ? getProduct(productId) : undefined;
+const preselected = product?.categorySlug ?? '';
+---
+
+<PlatformLayout
+  title="무료 보험 상담 신청"
+  description="정보를 남겨주시면 검증된 설계사가 연락드립니다. 상담은 무료이며 가입 의무가 없습니다."
+>
+  <div class="plat" style="max-width:560px">
+    <div style="padding-top:1.6rem">
+      <h1 style="margin:0;font-size:1.7rem">무료 보험 상담 신청</h1>
+      <p style="color:var(--muted);margin:0.6rem 0 0">
+        정보를 남겨주시면 검증된 설계사가 연락드립니다. 상담은 무료이며, 가입 의무는 없습니다.
+      </p>
+    </div>
+
+    <div class="form-card" id="formCard">
+      <form id="consultForm" novalidate>
+        {product && (
+          <div class="selected-product">
+            <span>신청 상품</span>
+            <b>{product.name}</b>
+            <input type="hidden" name="productId" value={product.id} />
+          </div>
+        )}
+
+        <div class="form-field">
+          <label for="name">이름 <span class="req">*</span></label>
+          <input class="input" id="name" name="name" type="text" placeholder="홍길동" />
+          <p class="field-error" data-error="name" hidden></p>
+        </div>
+
+        <div class="form-field">
+          <label for="phone">휴대폰 번호 <span class="req">*</span></label>
+          <input class="input" id="phone" name="phone" type="tel" inputmode="numeric" placeholder="010-1234-5678" />
+          <p class="field-error" data-error="phone" hidden></p>
+        </div>
+
+        <div class="form-field">
+          <label for="categorySlug">보험 종류 <span class="req">*</span></label>
+          <select class="select" id="categorySlug" name="categorySlug">
+            <option value="" disabled selected={!preselected}>상담받을 보험을 선택하세요</option>
+            {categories.map((c) => (
+              <option value={c.slug} selected={c.slug === preselected}>{c.name}</option>
+            ))}
+          </select>
+          <p class="field-error" data-error="categorySlug" hidden></p>
+        </div>
+
+        <div class="form-row2">
+          <div class="form-field">
+            <label for="birthYear">출생연도 <span class="opt">(선택)</span></label>
+            <input class="input" id="birthYear" name="birthYear" type="number" placeholder="1990" />
+            <p class="field-error" data-error="birthYear" hidden></p>
+          </div>
+          <div class="form-field">
+            <label for="gender">성별 <span class="opt">(선택)</span></label>
+            <select class="select" id="gender" name="gender">
+              <option value="">선택 안 함</option>
+              <option value="male">남성</option>
+              <option value="female">여성</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="message">문의 내용 <span class="opt">(선택)</span></label>
+          <textarea class="textarea" id="message" name="message" rows="3" placeholder="궁금한 점이나 원하는 보장을 자유롭게 적어주세요."></textarea>
+        </div>
+
+        <div class="form-field">
+          <label class="agree">
+            <input type="checkbox" name="agreedPrivacy" id="agreedPrivacy" />
+            <span><b>[필수]</b> 상담 진행을 위한 개인정보(이름, 연락처 등) 수집·이용 및 설계사 제공에 동의합니다.</span>
+          </label>
+          <p class="field-error" data-error="agreedPrivacy" hidden></p>
+        </div>
+
+        <p class="field-error" id="formError" hidden></p>
+
+        <button type="submit" class="btn btn--primary btn--block" id="submitBtn">
+          무료 상담 신청하기
+        </button>
+      </form>
+    </div>
+  </div>
+</PlatformLayout>
+
+<script>
+  const form = document.getElementById('consultForm') as HTMLFormElement;
+  const card = document.getElementById('formCard') as HTMLElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const formError = document.getElementById('formError') as HTMLElement;
+
+  function showErrors(errs: Record<string, string>) {
+    document.querySelectorAll<HTMLElement>('.field-error[data-error]').forEach((el) => {
+      const key = el.dataset.error!;
+      if (errs[key]) {
+        el.textContent = errs[key];
+        el.hidden = false;
+      } else {
+        el.hidden = true;
+      }
+    });
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formError.hidden = true;
+    showErrors({});
+
+    const fd = new FormData(form);
+    const payload = {
+      name: fd.get('name'),
+      phone: fd.get('phone'),
+      categorySlug: fd.get('categorySlug'),
+      productId: fd.get('productId') ?? '',
+      birthYear: fd.get('birthYear') ?? '',
+      gender: fd.get('gender') ?? '',
+      message: fd.get('message') ?? '',
+      agreedPrivacy: (form.querySelector('#agreedPrivacy') as HTMLInputElement).checked,
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '접수 중...';
+
+    try {
+      const res = await fetch('/api/consult', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        card.innerHTML = `
+          <div class="form-success">
+            <div class="form-success__icon">✅</div>
+            <h2 style="margin:1rem 0 0.3rem;font-size:1.3rem">상담 신청이 접수되었습니다</h2>
+            <p style="color:var(--muted);line-height:1.6">담당 설계사가 영업일 기준 1일 이내에 연락드립니다.<br/>편안한 마음으로 기다려 주세요.</p>
+            <a href="/" class="btn btn--primary" style="margin-top:1.2rem">홈으로 돌아가기</a>
+          </div>`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      if (data.fieldErrors) showErrors(data.fieldErrors);
+      formError.textContent = data.error ?? '입력값을 확인해 주세요.';
+      formError.hidden = false;
+    } catch {
+      formError.textContent = '네트워크 오류가 발생했습니다. 다시 시도해 주세요.';
+      formError.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '무료 상담 신청하기';
+    }
+  });
+</script>

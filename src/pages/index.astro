@@ -1,60 +1,196 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PostCard from '../components/PostCard.astro';
+import PlatformLayout from '../layouts/PlatformLayout.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { SITE } from '../consts';
+import { categories } from '../platform/categories';
+import { products, countByCategory } from '../platform/products';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+const infoPosts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
+
+const slides = [
+  {
+    title: '흩어진 보험 상품,<br /><span class="point">한 번에 비교</span>하고 상담받기',
+    sub: '자동차·실손·암·종신·여행자보험까지. 조건에 맞는 상품을 비교하고, 검증된 설계사와 무료로 상담하세요.',
+  },
+  {
+    title: '복잡한 보험 찾기,<br /><span class="point">검색 한 번</span>으로 간단하게',
+    sub: "원하는 조건을 검색하면 맞는 보험을 빠르게 찾아드립니다. 예: '30대 직장인 실손보험 추천'.",
+  },
+  {
+    title: '비교는 무료로,<br /><span class="point">가입은 전문가</span>와 함께',
+    sub: '검증된 설계사가 조건을 확정하고 가입까지 도와드립니다. 상담 수수료는 없습니다.',
+  },
+];
+
+const steps = [
+  { icon: '🔍', title: '비교하기', desc: '보험 종류별로 여러 상품의 보험료와 보장을 한눈에 비교하세요.' },
+  { icon: '📝', title: '상담 신청', desc: '마음에 드는 상품에 무료 상담을 신청하면 정보가 접수됩니다.' },
+  { icon: '🤝', title: '전문가 연결', desc: '검증된 설계사가 연락드려 조건을 확정하고 가입을 도와드립니다.' },
+];
 ---
 
-<BaseLayout>
-  <section class="hero">
-    <h1>돈이 되는 생활·재테크 정보</h1>
-    <p>{SITE.description}</p>
+<PlatformLayout
+  title="한 번에 비교하고 상담받는 보험 플랫폼"
+  description="자동차·실손·암·종신·여행자보험을 한 곳에서 비교하고, 무료 상담으로 나에게 맞는 보험을 찾으세요."
+>
+  <!-- 대형 히어로 -->
+  <section class="bighero">
+    <div class="plat bighero__inner">
+      <!-- AI 검색바 -->
+      <form class="searchbar" action="/search" method="get" role="search">
+        <input
+          type="text"
+          name="q"
+          placeholder="찾는 보험 검색 (예: 30대 직장인 실손보험 추천)"
+          aria-label="보험 상품 검색"
+        />
+        <button type="submit" class="searchbar__btn">✨ AI 검색</button>
+      </form>
+
+      <!-- 슬라이드 슬로건 -->
+      <div class="slides" id="slides">
+        {
+          slides.map((s, i) => (
+            <div class:list={['slide', i === 0 && 'on']} data-slide={i}>
+              <h1 class="slide__title" set:html={s.title} />
+              <p class="slide__sub">{s.sub}</p>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="slidenav">
+        {slides.map((_, i) => (
+          <button
+            class:list={['slidedot', i === 0 && 'on']}
+            data-dot={i}
+            type="button"
+            aria-label={`슬라이드 ${i + 1}`}
+          />
+        ))}
+        <button class="slidepause" id="slidePause" type="button" aria-label="슬라이드 재생/정지">
+          ⏸
+        </button>
+      </div>
+
+      <!-- 하단 퀵바 -->
+      <div class="quickbar">
+        <span class="quickbar__label">🔎 어떤 상품을 찾으세요?</span>
+        <a class="quickbar__item" href="/products/#life">💚 생명보험상품</a>
+        <a class="quickbar__item" href="/products/#nonlife">📊 손해보험 상품</a>
+        <a class="quickbar__cta" href="/my/">🗂️ 내 보험 관리</a>
+      </div>
+    </div>
+  </section>
+  <div class="quickbar-spacer"></div>
+
+  <!-- Categories -->
+  <section id="categories" class="section">
+    <div class="plat">
+      <h2 class="section__title">어떤 보험을 찾으세요?</h2>
+      <p class="section__desc">보험 종류를 선택해 상품을 비교해 보세요.</p>
+      <div class="cat-grid">
+        {
+          categories.map((c) => (
+            <a class="cat-card" href={`/compare/${c.slug}/`}>
+              <span class="cat-card__icon">{c.icon}</span>
+              <h3 class="cat-card__name">{c.name}</h3>
+              <p class="cat-card__tag">{c.tagline}</p>
+              <span class="cat-card__count">상품 {countByCategory(c.slug)}개 비교 →</span>
+            </a>
+          ))
+        }
+      </div>
+      <div class="plat" style="padding:0;margin-top:1.4rem">
+        <AdSlot label="홈 중간 광고" format="horizontal" height={100} />
+      </div>
+    </div>
   </section>
 
-  <AdSlot label="상단 광고" format="horizontal" height={100} />
+  <!-- How it works -->
+  <section id="how" class="section section--soft">
+    <div class="plat">
+      <h2 class="section__title">이용 방법</h2>
+      <p class="section__desc">3단계로 간단하게 나에게 맞는 보험을 찾으세요.</p>
+      <div class="steps">
+        {
+          steps.map((s, i) => (
+            <div class="step">
+              <div class="step__badge">
+                <span class="step__icon">{s.icon}</span>
+                <span class="step__no">STEP {i + 1}</span>
+              </div>
+              <h3 class="step__title">{s.title}</h3>
+              <p class="step__desc">{s.desc}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
 
-  <h2 class="section-title">최신 글</h2>
-  {
-    posts.length === 0 ? (
-      <p>아직 발행된 글이 없습니다. <code>src/content/blog/</code> 에 마크다운을 추가하세요.</p>
-    ) : (
-      posts.map((post, i) => (
-        <Fragment>
-          <PostCard
-            slug={post.id}
-            title={post.data.title}
-            description={post.data.description}
-            category={post.data.category}
-            pubDate={post.data.pubDate}
-          />
-          {i === 2 && <AdSlot label="목록 중간 광고" />}
-        </Fragment>
-      ))
-    )
-  }
-</BaseLayout>
+  <!-- Info blog teaser -->
+  <section class="section">
+    <div class="plat">
+      <h2 class="section__title">알아두면 돈이 되는 보험·금융 정보</h2>
+      <p class="section__desc">
+        보험 가입 전 꼭 알아야 할 실속 정보를 <a href="/blog/">정보 블로그</a>에서 확인하세요.
+      </p>
+      <div class="info-banner">
+        <div>
+          <h3>{infoPosts[0]?.data.title ?? '보험·금융 가이드'}</h3>
+          <p>{infoPosts[0]?.data.description ?? '유용한 정보 글을 준비 중입니다.'}</p>
+        </div>
+        <a href="/blog/" class="btn btn--ghost btn--sm">정보 전체 보기 →</a>
+      </div>
+    </div>
+  </section>
+</PlatformLayout>
 
-<style>
-  .hero {
-    text-align: center;
-    padding: 0.3rem 0 0.7rem;
+<script>
+  const slides = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
+  const dots = Array.from(document.querySelectorAll<HTMLButtonElement>('.slidedot'));
+  const pauseBtn = document.getElementById('slidePause') as HTMLButtonElement | null;
+  let idx = 0;
+  let timer: number | undefined;
+  let playing = true;
+
+  function show(n: number) {
+    idx = (n + slides.length) % slides.length;
+    slides.forEach((s, i) => s.classList.toggle('on', i === idx));
+    dots.forEach((d, i) => d.classList.toggle('on', i === idx));
   }
-  .hero h1 {
-    font-size: 1.45rem;
-    margin: 0 0 0.3rem;
+  function next() {
+    show(idx + 1);
   }
-  .hero p {
-    color: var(--muted);
-    margin: 0;
-    font-size: 0.95rem;
+  function start() {
+    stop();
+    timer = window.setInterval(next, 4500);
+    playing = true;
+    if (pauseBtn) pauseBtn.textContent = '⏸';
   }
-  .section-title {
-    font-size: 1.25rem;
-    margin: 0 0 0.5rem;
+  function stop() {
+    if (timer) window.clearInterval(timer);
+    timer = undefined;
   }
-</style>
+
+  dots.forEach((d) =>
+    d.addEventListener('click', () => {
+      show(Number(d.dataset.dot));
+      if (playing) start();
+    })
+  );
+  pauseBtn?.addEventListener('click', () => {
+    if (playing) {
+      stop();
+      playing = false;
+      pauseBtn.textContent = '▶';
+    } else {
+      start();
+    }
+  });
+
+  if (slides.length > 1) start();
+</script>

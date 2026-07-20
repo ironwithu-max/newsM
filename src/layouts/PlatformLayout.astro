@@ -1,0 +1,178 @@
+---
+import '../styles/global.css';
+import '../styles/platform.css';
+import Seo from '../components/Seo.astro';
+import { SITE } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, description, image } = Astro.props;
+const adsenseEnabled = SITE.adsenseClient.startsWith('ca-pub-');
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <Seo title={title} description={description} image={image} />
+    {
+      adsenseEnabled && (
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${SITE.adsenseClient}`}
+          crossorigin="anonymous"
+        />
+      )
+    }
+  </head>
+  <body>
+    <header class="plat-header">
+      <div class="plat plat-header__top">
+        <a href="/" class="plat-brand">🛡️ Life<span>&nbsp;news</span></a>
+        <a href="/consult/" class="btn btn--primary btn--sm">무료 상담</a>
+      </div>
+      <nav class="plat-nav">
+        <div class="plat plat-nav__row">
+          <a href="/consumer-protection/" class:list={[isActive('/consumer-protection') && 'on']}>금융소비자보호</a>
+          <a href="/products/" class:list={[isActive('/products') && 'on']}>상품안내</a>
+          <a href="/about/" class:list={[isActive('/about') && 'on']}>기관안내</a>
+          <a href="/blog/" class:list={[isActive('/blog') && 'on']}>안내사항</a>
+          <a href="/my/" class:list={[isActive('/my') && 'on']}>고객관리</a>
+          <a href="/recruit/" class:list={[isActive('/recruit') && 'on']}>입사안내</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="plat-footer">
+      <div class="plat">
+        <div class="plat-brand">🛡️ Life news</div>
+        <p class="plat-footer__desc">
+          본 서비스는 보험 상품 비교 정보와 상담 연결을 제공하는 중개 플랫폼입니다.
+          표시된 보험료·보장 내용은 데모용 예시이며, 실제 가입 조건은 보험사·설계사
+          상담을 통해 확정됩니다.
+        </p>
+        <nav class="plat-footer__nav">
+          <a href="/blog/">정보 블로그</a>
+          <a href="/about/">소개</a>
+          <a href="/contact/">연락처</a>
+          <a href="/privacy/">개인정보처리방침</a>
+        </nav>
+        <p class="plat-footer__copy">
+          © {new Date().getFullYear()} {SITE.name}. 데모 프로젝트 — 실제 금융 상품
+          판매와 무관합니다.
+        </p>
+      </div>
+    </footer>
+
+    <style>
+      .plat-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+      }
+      .plat-header__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        height: 3.5rem;
+      }
+      .plat-brand {
+        font-weight: 800;
+        font-size: 1.3rem;
+        color: var(--fg);
+        text-decoration: none;
+        white-space: nowrap;
+        letter-spacing: -0.01em;
+      }
+      .plat-brand span {
+        color: var(--point, var(--brand));
+      }
+      .plat-nav {
+        border-top: 1px solid var(--border);
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .plat-nav::-webkit-scrollbar {
+        display: none;
+      }
+      .plat-nav__row {
+        display: flex;
+        gap: 0.35rem;
+        width: max-content;
+        padding-top: 0.35rem;
+        padding-bottom: 0.5rem;
+      }
+      .plat-nav__row a {
+        flex: 0 0 auto;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.95rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 8px;
+        white-space: nowrap;
+      }
+      .plat-nav__row a:hover,
+      .plat-nav__row a.on {
+        color: var(--point, var(--brand));
+        background: var(--bg-soft);
+      }
+      .plat-footer {
+        margin-top: 3rem;
+        border-top: 1px solid var(--border);
+        background: var(--bg-soft);
+      }
+      .plat-footer .plat {
+        padding-top: 2rem;
+        padding-bottom: 2.5rem;
+      }
+      .plat-footer__desc {
+        color: var(--muted);
+        font-size: 0.9rem;
+        max-width: 42rem;
+        margin: 0.7rem 0 0;
+      }
+      .plat-footer__nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .plat-footer__nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .plat-footer__nav a:hover {
+        color: var(--brand);
+      }
+      .plat-footer__copy {
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-top: 1rem;
+      }
+    </style>
+  </body>
+</html>
