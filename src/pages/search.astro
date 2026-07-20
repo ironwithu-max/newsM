@@ -6,7 +6,7 @@ import { products } from '../platform/products';
 import { getCategory } from '../platform/categories';
 import { getInsurer } from '../platform/insurers';
 
-// 각 상품의 검색 대상 텍스트(상품명·보험사·카테고리·태그·강점·요약)
+// 키워드 폴백용 검색 텍스트
 const indexed = products.map((p) => {
   const cat = getCategory(p.categorySlug);
   const insurer = getInsurer(p.insurerId);
@@ -28,7 +28,7 @@ const indexed = products.map((p) => {
 
 <PlatformLayout
   title="보험 상품 검색"
-  description="원하는 조건으로 보험 상품을 검색해 비교하세요."
+  description="AI가 검색어 의미를 이해해 맞는 보험을 추천합니다."
 >
   <div class="plat" style="padding-top:1.6rem">
     <form class="searchbar" action="/search" method="get" role="search" style="max-width:640px">
@@ -42,6 +42,17 @@ const indexed = products.map((p) => {
       <button type="submit" class="searchbar__btn">✨ AI 검색</button>
     </form>
 
+    <!-- AI 분석 결과 배너 -->
+    <div class="ai-banner" id="aiBanner" hidden>
+      <div class="ai-banner__head">
+        <span class="ai-banner__badge">✨ AI 추천</span>
+        <span class="ai-banner__q" id="aiQuery"></span>
+      </div>
+      <p class="ai-banner__summary" id="aiSummary"></p>
+    </div>
+
+    <p class="ai-loading" id="aiLoading" hidden>✨ AI가 검색어를 분석하고 있어요…</p>
+
     <h1 style="font-size:1.5rem;margin:1.6rem 0 0.2rem">
       검색 결과<span id="queryLabel" style="color:var(--point)"></span>
     </h1>
@@ -50,8 +61,9 @@ const indexed = products.map((p) => {
     <div class="prod-grid" id="searchGrid">
       {
         indexed.map(({ product, haystack }) => (
-          <div data-search={haystack} data-cat={product.categorySlug}>
+          <div data-search={haystack} data-cat={product.categorySlug} data-id={product.id}>
             <ProductCardP product={product} />
+            <p class="ai-reason" hidden></p>
           </div>
         ))
       }
@@ -66,6 +78,56 @@ const indexed = products.map((p) => {
   </div>
 </PlatformLayout>
 
+<style>
+  .ai-banner {
+    margin-top: 1.2rem;
+    background: linear-gradient(135deg, #fdf2f8, #eef2ff);
+    border: 1px solid #f9c8e0;
+    border-radius: 16px;
+    padding: 1.1rem 1.3rem;
+  }
+  .ai-banner__head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .ai-banner__badge {
+    background: var(--point);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+  }
+  .ai-banner__q {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .ai-banner__summary {
+    margin: 0.6rem 0 0;
+    color: var(--fg);
+    line-height: 1.7;
+  }
+  .ai-loading {
+    margin-top: 1rem;
+    color: var(--point);
+    font-weight: 600;
+  }
+  .ai-reason {
+    margin: 0.5rem 0 0;
+    background: #fdf2f8;
+    color: var(--point-dark);
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .ai-reason::before {
+    content: '✨ ';
+  }
+</style>
+
 <script>
   const grid = document.getElementById('searchGrid')!;
   const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-search]'));
@@ -73,8 +135,12 @@ const indexed = products.map((p) => {
   const emptyEl = document.getElementById('searchEmpty') as HTMLElement;
   const queryLabel = document.getElementById('queryLabel')!;
   const input = document.getElementById('searchInput') as HTMLInputElement;
+  const aiBanner = document.getElementById('aiBanner') as HTMLElement;
+  const aiSummary = document.getElementById('aiSummary')!;
+  const aiQuery = document.getElementById('aiQuery')!;
+  const aiLoading = document.getElementById('aiLoading') as HTMLElement;
 
-  // 카테고리 동의어(자연어 검색 보조)
+  // 카테고리 동의어 (키워드 폴백 보조)
   const synonyms: Record<string, string[]> = {
     자동차: ['auto'], 차: ['auto'], 운전: ['auto', 'driver'],
     실손: ['medical'], 실비: ['medical'], 의료: ['medical'], 병원: ['medical'],
@@ -85,7 +151,18 @@ const indexed = products.map((p) => {
     치아: ['dental'], 임플란트: ['dental'], 크라운: ['dental'],
   };
 
-  function apply(qRaw: string) {
+  function clearReasons() {
+    cards.forEach((c) => {
+      const r = c.querySelector<HTMLElement>('.ai-reason')!;
+      r.hidden = true;
+      r.textContent = '';
+    });
+  }
+
+  // 키워드 + 동의어 폴백
+  function keywordSearch(qRaw: string) {
+    aiBanner.hidden = true;
+    clearReasons();
     const q = qRaw.trim().toLowerCase();
     queryLabel.textContent = q ? ` · "${qRaw.trim()}"` : '';
 
@@ -97,7 +174,6 @@ const indexed = products.map((p) => {
     }
 
     const tokens = q.split(/\s+/).filter(Boolean);
-    // 동의어로 유추되는 카테고리
     const catHints = new Set<string>();
     tokens.forEach((t) => {
       for (const [k, cats] of Object.entries(synonyms)) {
@@ -109,10 +185,7 @@ const indexed = products.map((p) => {
     cards.forEach((card) => {
       const hay = card.dataset.search ?? '';
       const cat = card.dataset.cat ?? '';
-      // 토큰이 텍스트에 포함되거나, 동의어로 유추된 카테고리와 일치하면 노출
-      const textMatch = tokens.some((t) => hay.includes(t));
-      const catMatch = catHints.has(cat);
-      const ok = textMatch || catMatch;
+      const ok = tokens.some((t) => hay.includes(t)) || catHints.has(cat);
       card.hidden = !ok;
       if (ok) visible++;
     });
@@ -120,9 +193,69 @@ const indexed = products.map((p) => {
     emptyEl.hidden = visible !== 0;
   }
 
-  // URL의 q로 초기 필터
+  // AI 추천 결과 렌더 (추천 상품만, 순서대로, 이유 표시)
+  function renderAI(qRaw: string, summary: string, recs: { productId: string; reason: string }[]) {
+    queryLabel.textContent = ` · "${qRaw.trim()}"`;
+    aiQuery.textContent = `"${qRaw.trim()}"`;
+    aiSummary.textContent = summary;
+    aiBanner.hidden = false;
+    clearReasons();
+
+    const order = new Map(recs.map((r, i) => [r.productId, i]));
+    const reasonById = new Map(recs.map((r) => [r.productId, r.reason]));
+
+    cards.forEach((card) => {
+      const id = card.dataset.id ?? '';
+      const on = order.has(id);
+      card.hidden = !on;
+      if (on) {
+        const r = card.querySelector<HTMLElement>('.ai-reason')!;
+        r.textContent = reasonById.get(id) ?? '';
+        r.hidden = false;
+      }
+    });
+
+    // 추천 순서대로 재배치
+    [...recs]
+      .sort((a, b) => (order.get(a.productId)! - order.get(b.productId)!))
+      .forEach((r) => {
+        const card = cards.find((c) => c.dataset.id === r.productId);
+        if (card) grid.appendChild(card);
+      });
+
+    countEl.textContent = String(recs.length);
+    emptyEl.hidden = recs.length !== 0;
+  }
+
+  async function run(qRaw: string) {
+    const q = qRaw.trim();
+    if (!q) {
+      keywordSearch('');
+      return;
+    }
+    aiLoading.hidden = false;
+    try {
+      const res = await fetch('/api/ai-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q }),
+      });
+      const data = await res.json();
+      if (data.ok && data.ai && Array.isArray(data.recommendations) && data.recommendations.length) {
+        renderAI(q, data.summary ?? '', data.recommendations);
+      } else {
+        // 폴백(키 없음/AI 실패/추천 없음) → 키워드 검색
+        keywordSearch(q);
+      }
+    } catch {
+      keywordSearch(q);
+    } finally {
+      aiLoading.hidden = true;
+    }
+  }
+
   const params = new URLSearchParams(location.search);
   const q0 = params.get('q') ?? '';
   input.value = q0;
-  apply(q0);
+  run(q0);
 </script>

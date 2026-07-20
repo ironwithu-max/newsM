@@ -51,9 +51,10 @@ const isActive = (href: string) =>
           <a href="/consumer-protection/" class:list={[isActive('/consumer-protection') && 'on']}>금융소비자보호</a>
           <a href="/products/" class:list={[isActive('/products') && 'on']}>상품안내</a>
           <a href="/about/" class:list={[isActive('/about') && 'on']}>기관안내</a>
-          <a href="/blog/" class:list={[isActive('/blog') && 'on']}>안내사항</a>
+          <a href="/notice/" class:list={[isActive('/notice') && 'on']}>안내사항</a>
           <a href="/my/" class:list={[isActive('/my') && 'on']}>고객관리</a>
           <a href="/recruit/" class:list={[isActive('/recruit') && 'on']}>입사안내</a>
+          <a href="/blog/" class:list={['plat-nav__hl', isActive('/blog') && 'on']}>💰 돈이되는 정보</a>
         </div>
       </nav>
     </header>
@@ -138,6 +139,14 @@ const isActive = (href: string) =>
       .plat-nav__row a.on {
         color: var(--point, var(--brand));
         background: var(--bg-soft);
+      }
+      .plat-nav__row a.plat-nav__hl {
+        color: var(--point, var(--brand));
+        font-weight: 700;
+      }
+      .plat-nav__row a.plat-nav__hl:hover,
+      .plat-nav__row a.plat-nav__hl.on {
+        background: #fde4f0;
       }
       .plat-footer {
         margin-top: 3rem;
