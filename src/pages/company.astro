@@ -1,0 +1,157 @@
+---
+import PlatformLayout from '../layouts/PlatformLayout.astro';
+
+const stats = [
+  { value: '8종', label: '취급 보험 분야' },
+  { value: '무료', label: '비교·상담 수수료' },
+  { value: '검증', label: '제휴 설계사' },
+];
+
+const values = [
+  {
+    icon: '⚖️',
+    title: '중립적인 비교',
+    body: '특정 상품에 치우치지 않고, 보험료·보장 기준으로 여러 상품을 객관적으로 비교해 드립니다.',
+  },
+  {
+    icon: '🤝',
+    title: '검증된 상담 연결',
+    body: '자격을 갖춘 설계사와 연결해 실제 가입 조건을 정확히 안내받을 수 있도록 돕습니다.',
+  },
+  {
+    icon: '🔒',
+    title: '안전한 정보 관리',
+    body: '상담을 위해 수집한 개인정보는 목적 외로 사용하지 않으며 관련 법령에 따라 보호합니다.',
+  },
+];
+---
+
+<PlatformLayout
+  title="기관안내"
+  description="Life news는 보험 상품 비교 정보와 상담 연결을 제공하는 보험 중개 플랫폼입니다."
+>
+  <div class="plat" style="padding-top:1.6rem;max-width:900px">
+    <nav class="crumbs">
+      <a href="/">홈</a><span class="sep">/</span><span>기관안내</span>
+    </nav>
+
+    <h1 style="font-size:1.8rem;margin:0.8rem 0 0.3rem">기관안내</h1>
+    <p style="color:var(--muted);margin:0;max-width:46rem;line-height:1.7">
+      <strong>Life news</strong>는 흩어져 있는 보험 상품을 한곳에서 비교하고, 검증된
+      전문가와의 상담으로 연결해 드리는 <strong>보험 비교·중개 플랫폼</strong>입니다.
+      복잡한 보험을 쉽게, 그리고 나에게 맞게 선택할 수 있도록 돕는 것을 목표로 합니다.
+    </p>
+
+    <div class="co-stats">
+      {
+        stats.map((s) => (
+          <div class="co-stat">
+            <b>{s.value}</b>
+            <span>{s.label}</span>
+          </div>
+        ))
+      }
+    </div>
+
+    <h2 class="co-h2">우리가 하는 일</h2>
+    <div class="co-values">
+      {
+        values.map((v) => (
+          <div class="co-card">
+            <span class="co-icon">{v.icon}</span>
+            <h3 class="co-card__title">{v.title}</h3>
+            <p class="co-card__body">{v.body}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <h2 class="co-h2">사업 모델</h2>
+    <p style="color:var(--muted);line-height:1.8;max-width:46rem">
+      Life news는 보험 상품을 <strong>직접 판매하지 않습니다.</strong> 여러 보험사의 상품
+      정보를 비교해 제공하고, 고객이 원할 경우 자격을 갖춘 설계사와의 상담을 연결하는
+      <strong>중개</strong> 역할을 합니다. 실제 계약 체결과 보장은 각 보험사 및 설계사를
+      통해 이루어지며, 표시된 보험료·보장 내용은 참고용 예시입니다.
+    </p>
+
+    <div class="co-contact">
+      <div>
+        <h3 style="margin:0 0 0.2rem">제휴·문의</h3>
+        <p style="margin:0;color:var(--muted)">보험사·설계사 제휴 및 서비스 문의를 환영합니다.</p>
+      </div>
+      <a href="/contact/" class="btn btn--primary">문의하기</a>
+    </div>
+
+    <p class="disclaimer">
+      ※ 본 페이지는 데모용 안내입니다. Life news는 보험 상품 비교·상담 연결(중개) 서비스를
+      제공하며, 실제 금융 상품 판매와는 무관합니다.
+    </p>
+  </div>
+</PlatformLayout>
+
+<style>
+  .co-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 1.6rem 0 0.5rem;
+    padding: 1.2rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .co-stat b {
+    display: block;
+    font-size: 1.6rem;
+    color: var(--point, var(--brand));
+    font-weight: 800;
+  }
+  .co-stat span {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .co-h2 {
+    font-size: 1.3rem;
+    margin: 2.2rem 0 0;
+  }
+  .co-values {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  @media (min-width: 720px) {
+    .co-values {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .co-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.3rem;
+  }
+  .co-icon {
+    font-size: 1.7rem;
+  }
+  .co-card__title {
+    margin: 0.6rem 0 0.4rem;
+    font-size: 1.1rem;
+  }
+  .co-card__body {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+    font-size: 0.95rem;
+  }
+  .co-contact {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem 1.6rem;
+    margin-top: 1.6rem;
+  }
+</style>
