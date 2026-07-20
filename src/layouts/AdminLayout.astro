@@ -1,0 +1,174 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  active: 'leads' | 'customers' | 'alerts';
+  authed: boolean;
+  configured: boolean;
+}
+const { title, active, authed, configured } = Astro.props;
+
+const navItems = [
+  { key: 'leads', label: '상담 리드', href: '/admin' },
+  { key: 'customers', label: '고객·보험', href: '/admin/customers' },
+  { key: 'alerts', label: '알림', href: '/admin/alerts' },
+];
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} — 관리자</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+  </head>
+  <body class="admin">
+    <header class="ad-header">
+      <div class="ad-wrap ad-header__row">
+        <strong class="ad-brand">🛡️ Life news · 관리자</strong>
+        {authed && (
+          <form method="POST" action="/api/admin-logout" style="margin:0">
+            <button class="ad-logout" type="submit">로그아웃</button>
+          </form>
+        )}
+      </div>
+      {authed && (
+        <nav class="ad-nav">
+          <div class="ad-wrap ad-nav__row">
+            {navItems.map((n) => (
+              <a href={n.href} class:list={['ad-nav__link', n.key === active && 'on']}>
+                {n.label}
+              </a>
+            ))}
+          </div>
+        </nav>
+      )}
+    </header>
+
+    <main class="ad-wrap ad-main">
+      {
+        !configured ? (
+          <div class="ad-card ad-notice">
+            <h1>관리자 비밀번호가 설정되지 않았습니다</h1>
+            <p><code>.env</code>(및 배포 시 Vercel 환경변수)에 <code>ADMIN_PASSWORD</code>를 설정한 뒤 다시 접속하세요.</p>
+          </div>
+        ) : !authed ? (
+          <div class="ad-card ad-login">
+            <h1>관리자 로그인</h1>
+            <p>고객·보험·상담 정보 조회를 위해 비밀번호를 입력하세요.</p>
+            <form id="loginForm">
+              <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
+              <button type="submit">로그인</button>
+            </form>
+            <p class="ad-err" id="loginErr" hidden></p>
+          </div>
+        ) : (
+          <slot />
+        )
+      }
+    </main>
+
+    <style>
+      .admin { background: var(--bg-soft); min-height: 100vh; margin: 0; }
+      .ad-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.2rem; }
+      .ad-header { background: var(--bg); border-bottom: 1px solid var(--border); }
+      .ad-header__row {
+        display: flex; align-items: center; justify-content: space-between; height: 3.4rem;
+      }
+      .ad-brand { font-size: 1.05rem; }
+      .ad-logout {
+        border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+        border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-size: 0.9rem;
+      }
+      .ad-logout:hover { border-color: var(--accent); color: var(--accent); }
+      .ad-nav { border-top: 1px solid var(--border); }
+      .ad-nav__row { display: flex; gap: 0.3rem; padding-top: 0.3rem; padding-bottom: 0.4rem; }
+      .ad-nav__link {
+        color: var(--muted); text-decoration: none; font-size: 0.95rem;
+        padding: 0.4rem 0.8rem; border-radius: 8px; font-weight: 600;
+      }
+      .ad-nav__link:hover { background: var(--bg-soft); color: var(--fg); }
+      .ad-nav__link.on { background: var(--accent-soft); color: var(--accent); }
+      .ad-main { padding-top: 1.6rem; padding-bottom: 3rem; }
+
+      .ad-card {
+        background: var(--bg); border: 1px solid var(--border);
+        border-radius: 14px; padding: 1.4rem;
+      }
+      .ad-login, .ad-notice { max-width: 420px; }
+      .ad-login h1, .ad-notice h1 { font-size: 1.3rem; margin: 0 0 0.4rem; }
+      .ad-login p, .ad-notice p { color: var(--muted); margin: 0 0 1rem; }
+      .ad-login form { display: flex; gap: 0.5rem; }
+      .ad-login input {
+        flex: 1; border: 1px solid var(--border); border-radius: 8px;
+        padding: 0.6rem 0.75rem; font-size: 1rem; font-family: inherit;
+      }
+      .ad-login input:focus { outline: none; border-color: var(--accent); }
+      .ad-login button {
+        background: var(--accent); color: #fff; border: none; border-radius: 8px;
+        padding: 0.6rem 1.1rem; font-weight: 700; cursor: pointer;
+      }
+      .ad-err { color: #ef4444; font-size: 0.88rem; margin: 0.6rem 0 0; }
+
+      /* 공통 (하위 페이지에서 사용) */
+      .ad-title { margin: 0 0 1rem; font-size: 1.5rem; }
+      .ad-stats { display: flex; gap: 1.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+      .ad-stats > div { color: var(--muted); font-size: 0.85rem; }
+      .ad-stats b { display: block; font-size: 1.4rem; color: var(--fg); }
+      .ad-tablewrap {
+        background: var(--bg); border: 1px solid var(--border);
+        border-radius: 14px; overflow-x: auto;
+      }
+      .ad-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+      .ad-table th, .ad-table td {
+        text-align: left; padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .ad-table th {
+        background: var(--bg-soft); color: var(--muted); font-weight: 700; white-space: nowrap;
+      }
+      .ad-table tr:last-child td { border-bottom: none; }
+      .ad-nowrap { white-space: nowrap; }
+      .ad-badge {
+        background: var(--accent-soft); color: var(--accent); font-size: 0.78rem;
+        font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px;
+      }
+      .ad-sub { color: var(--muted); font-size: 0.8rem; margin-top: 0.3rem; }
+      .ad-msg { max-width: 240px; color: var(--fg); }
+      .ad-status {
+        border: 1px solid var(--border); border-radius: 8px; padding: 0.35rem 0.5rem;
+        font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      }
+    </style>
+
+    <script>
+      const loginForm = document.getElementById('loginForm') as HTMLFormElement | null;
+      if (loginForm) {
+        const err = document.getElementById('loginErr') as HTMLElement;
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          err.hidden = true;
+          const pw = (document.getElementById('pw') as HTMLInputElement).value;
+          const res = await fetch('/api/admin-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw }),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            location.reload();
+          } else {
+            err.textContent = data.error ?? '로그인 실패';
+            err.hidden = false;
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,236 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { ADMIN_COOKIE, isValidSession, isAdminConfigured } from '../../platform/adminAuth';
+import { getSupabaseAdmin } from '../../platform/supabaseServer';
+import { getCategory, categories } from '../../platform/categories';
+
+export const prerender = false;
+
+const configured = isAdminConfigured();
+const authed = configured && isValidSession(Astro.cookies.get(ADMIN_COOKIE)?.value);
+
+interface Customer {
+  id: string; name: string; phone: string; email: string | null;
+  birthday: string | null; anniversary: string | null; memo: string | null;
+  source: string; created_at: string;
+}
+interface Policy {
+  id: string; customer_id: string; insurer: string; product_name: string;
+  category_slug: string | null; monthly_premium: number | null;
+  start_date: string | null; expiry_date: string | null; renewal_date: string | null;
+  status: string;
+}
+
+let customers: Customer[] = [];
+let policies: Policy[] = [];
+let dbError: string | null = null;
+
+if (authed) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    dbError = 'Supabase가 연결되지 않았습니다. (.env 확인)';
+  } else {
+    const [c, p] = await Promise.all([
+      supabase.from('customers').select('*').order('created_at', { ascending: false }),
+      supabase.from('policies').select('*').order('created_at', { ascending: false }),
+    ]);
+    if (c.error) dbError = c.error.message;
+    else customers = (c.data ?? []) as Customer[];
+    if (!dbError && p.error) dbError = p.error.message;
+    else policies = (p.data ?? []) as Policy[];
+  }
+}
+
+const byCustomer = new Map<string, Policy[]>();
+for (const p of policies) {
+  const arr = byCustomer.get(p.customer_id) ?? [];
+  arr.push(p);
+  byCustomer.set(p.customer_id, arr);
+}
+
+const won = (n: number | null) => (n == null ? '-' : `월 ${n.toLocaleString('ko-KR')}원`);
+const d = (s: string | null) => s ?? '-';
+const missingTable = dbError && /relation|table|does not exist|schema cache/i.test(dbError);
+---
+
+<AdminLayout title="고객·보험" active="customers" authed={authed} configured={configured}>
+  <h1 class="ad-title">고객·보험 관리</h1>
+
+  {missingTable ? (
+    <div class="ad-card">
+      <p class="ad-err">customers/policies 테이블이 아직 없습니다.</p>
+      <p style="color:var(--muted);margin:0.4rem 0 0">
+        Supabase SQL Editor에서 <code>supabase/migrations/0002_customers_policies.sql</code> 를 실행한 뒤 새로고침하세요.
+      </p>
+    </div>
+  ) : dbError ? (
+    <div class="ad-card"><p class="ad-err">DB 오류: {dbError}</p></div>
+  ) : (
+    <Fragment>
+      <div class="ad-stats">
+        <div><b>{customers.length}</b>가입 고객</div>
+        <div><b>{policies.length}</b>보유 계약</div>
+      </div>
+
+      {/* 등록 폼 2종 */}
+      <div class="cust-forms">
+        <form class="ad-card cust-form" id="customerForm">
+          <h3>➕ 고객 등록</h3>
+          <div class="cf-grid">
+            <label>이름*<input name="name" required placeholder="홍길동" /></label>
+            <label>휴대폰*<input name="phone" required placeholder="010-1234-5678" /></label>
+            <label>이메일<input name="email" type="email" placeholder="선택" /></label>
+            <label>생일<input name="birthday" type="date" /></label>
+            <label>기념일<input name="anniversary" type="date" /></label>
+            <label>메모<input name="memo" placeholder="선택" /></label>
+          </div>
+          <button type="submit">고객 등록</button>
+          <p class="ad-err cf-err" hidden></p>
+        </form>
+
+        <form class="ad-card cust-form" id="policyForm">
+          <h3>➕ 보험 등록</h3>
+          <div class="cf-grid">
+            <label>고객*
+              <select name="customer_id" required>
+                <option value="">선택</option>
+                {customers.map((c) => (
+                  <option value={c.id}>{c.name} ({c.phone})</option>
+                ))}
+              </select>
+            </label>
+            <label>보험사*<input name="insurer" required placeholder="미래로화재" /></label>
+            <label>상품명*<input name="product_name" required placeholder="프리미엄 안심" /></label>
+            <label>보험 종류
+              <select name="category_slug">
+                <option value="">선택</option>
+                {categories.map((c) => <option value={c.slug}>{c.name}</option>)}
+              </select>
+            </label>
+            <label>월 보험료<input name="monthly_premium" inputmode="numeric" placeholder="원" /></label>
+            <label>가입일<input name="start_date" type="date" /></label>
+            <label>만기일<input name="expiry_date" type="date" /></label>
+            <label>갱신일<input name="renewal_date" type="date" /></label>
+          </div>
+          <button type="submit">보험 등록</button>
+          <p class="ad-err cf-err" hidden></p>
+        </form>
+      </div>
+
+      {/* 고객 목록 */}
+      {customers.length === 0 ? (
+        <div class="ad-card" style="margin-top:1.2rem"><p>등록된 고객이 없습니다. 위에서 고객을 등록하세요.</p></div>
+      ) : (
+        <div class="cust-list">
+          {customers.map((c) => {
+            const ps = byCustomer.get(c.id) ?? [];
+            return (
+              <div class="cust-card">
+                <div class="cust-card__head">
+                  <div>
+                    <span class="cust-name">{c.name}</span>
+                    <span class="cust-meta">{c.phone}{c.email ? ` · ${c.email}` : ''}</span>
+                  </div>
+                  <span class="ad-badge">{c.source === 'consult' ? '상담유입' : '직접'}</span>
+                </div>
+                <div class="cust-info">
+                  {c.birthday && <span>🎂 생일 {c.birthday}</span>}
+                  {c.anniversary && <span>💍 기념일 {c.anniversary}</span>}
+                  {c.memo && <span>📝 {c.memo}</span>}
+                </div>
+                {ps.length === 0 ? (
+                  <p class="cust-nopolicy">보유 보험 없음</p>
+                ) : (
+                  <div class="ad-tablewrap" style="margin-top:0.6rem">
+                    <table class="ad-table">
+                      <thead>
+                        <tr><th>보험사</th><th>상품</th><th>보험료</th><th>가입</th><th>만기</th><th>갱신</th></tr>
+                      </thead>
+                      <tbody>
+                        {ps.map((p) => (
+                          <tr>
+                            <td class="ad-nowrap">{p.insurer}</td>
+                            <td>
+                              {p.product_name}
+                              {p.category_slug && (
+                                <div class="ad-sub">{getCategory(p.category_slug)?.name ?? p.category_slug}</div>
+                              )}
+                            </td>
+                            <td class="ad-nowrap">{won(p.monthly_premium)}</td>
+                            <td class="ad-nowrap">{d(p.start_date)}</td>
+                            <td class="ad-nowrap">{d(p.expiry_date)}</td>
+                            <td class="ad-nowrap">{d(p.renewal_date)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Fragment>
+  )}
+
+  <style>
+    .cust-forms { display: grid; gap: 1rem; }
+    @media (min-width: 860px) { .cust-forms { grid-template-columns: 1fr 1fr; } }
+    .cust-form h3 { margin: 0 0 0.8rem; font-size: 1.05rem; }
+    .cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .cust-form label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.82rem; color: var(--muted); }
+    .cust-form input, .cust-form select {
+      border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.55rem;
+      font-size: 0.92rem; font-family: inherit; color: var(--fg); background: var(--bg);
+    }
+    .cust-form input:focus, .cust-form select:focus { outline: none; border-color: var(--accent); }
+    .cust-form > button {
+      margin-top: 0.8rem; background: var(--accent); color: #fff; border: none;
+      border-radius: 8px; padding: 0.55rem 1.1rem; font-weight: 700; cursor: pointer;
+    }
+    .cust-list { margin-top: 1.4rem; display: grid; gap: 1rem; }
+    .cust-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.2rem; }
+    .cust-card__head { display: flex; align-items: center; justify-content: space-between; }
+    .cust-name { font-weight: 800; font-size: 1.1rem; }
+    .cust-meta { color: var(--muted); font-size: 0.9rem; margin-left: 0.5rem; }
+    .cust-info { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.5rem; color: var(--muted); font-size: 0.88rem; }
+    .cust-nopolicy { color: var(--muted); font-size: 0.9rem; margin: 0.6rem 0 0; }
+  </style>
+
+  <script>
+    function wire(formId: string, url: string) {
+      const form = document.getElementById(formId) as HTMLFormElement | null;
+      if (!form) return;
+      const err = form.querySelector('.cf-err') as HTMLElement;
+      const btn = form.querySelector('button[type=submit]') as HTMLButtonElement;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        err.hidden = true;
+        const payload = Object.fromEntries(new FormData(form).entries());
+        btn.disabled = true;
+        const label = btn.textContent;
+        btn.textContent = '저장 중...';
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (data.ok) { location.reload(); return; }
+          err.textContent = data.error ?? '저장 실패';
+          err.hidden = false;
+        } catch {
+          err.textContent = '네트워크 오류';
+          err.hidden = false;
+        } finally {
+          btn.disabled = false;
+          btn.textContent = label;
+        }
+      });
+    }
+    wire('customerForm', '/api/admin/customer-create');
+    wire('policyForm', '/api/admin/policy-create');
+  </script>
+</AdminLayout>

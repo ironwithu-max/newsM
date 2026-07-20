@@ -1,0 +1,207 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { ADMIN_COOKIE, isValidSession, isAdminConfigured } from '../../platform/adminAuth';
+import { getSupabaseAdmin } from '../../platform/supabaseServer';
+
+export const prerender = false;
+
+const configured = isAdminConfigured();
+const authed = configured && isValidSession(Astro.cookies.get(ADMIN_COOKIE)?.value);
+
+interface Customer {
+  id: string; name: string; phone: string;
+  birthday: string | null; anniversary: string | null;
+}
+interface Policy {
+  id: string; customer_id: string; insurer: string; product_name: string;
+  monthly_premium: number | null; expiry_date: string | null;
+  renewal_date: string | null; status: string;
+}
+
+let customers: Customer[] = [];
+let policies: Policy[] = [];
+let dbError: string | null = null;
+
+if (authed) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) dbError = 'Supabase가 연결되지 않았습니다. (.env 확인)';
+  else {
+    const [c, p] = await Promise.all([
+      supabase.from('customers').select('id,name,phone,birthday,anniversary'),
+      supabase.from('policies').select('*').eq('status', 'active'),
+    ]);
+    if (c.error) dbError = c.error.message;
+    else customers = (c.data ?? []) as Customer[];
+    if (!dbError && p.error) dbError = p.error.message;
+    else policies = (p.data ?? []) as Policy[];
+  }
+}
+const missingTable = dbError && /relation|table|does not exist|schema cache/i.test(dbError);
+
+const custMap = new Map(customers.map((c) => [c.id, c]));
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+const curMonth = today.getMonth() + 1;
+
+function daysUntil(dateStr: string): number {
+  const t = new Date(dateStr + 'T00:00:00');
+  t.setHours(0, 0, 0, 0);
+  return Math.round((t.getTime() - today.getTime()) / 86_400_000);
+}
+
+// 만기 임박 (90일 이내)
+const expiring = policies
+  .filter((p) => p.expiry_date && daysUntil(p.expiry_date) >= 0 && daysUntil(p.expiry_date) <= 90)
+  .map((p) => ({ p, cust: custMap.get(p.customer_id), dday: daysUntil(p.expiry_date!) }))
+  .sort((a, b) => a.dday - b.dday);
+
+// 갱신 임박 (31일 이내) — 보험료·약관 변경 확인
+const renewing = policies
+  .filter((p) => p.renewal_date && daysUntil(p.renewal_date) >= 0 && daysUntil(p.renewal_date) <= 31)
+  .map((p) => ({ p, cust: custMap.get(p.customer_id), dday: daysUntil(p.renewal_date!) }))
+  .sort((a, b) => a.dday - b.dday);
+
+// 이번 달 생일 / 기념일
+const md = (s: string) => {
+  const dt = new Date(s + 'T00:00:00');
+  return { m: dt.getMonth() + 1, d: dt.getDate() };
+};
+const birthdays = customers
+  .filter((c) => c.birthday && md(c.birthday).m === curMonth)
+  .map((c) => ({ c, day: md(c.birthday!).d }))
+  .sort((a, b) => a.day - b.day);
+const anniversaries = customers
+  .filter((c) => c.anniversary && md(c.anniversary).m === curMonth)
+  .map((c) => ({ c, day: md(c.anniversary!).d }))
+  .sort((a, b) => a.day - b.day);
+
+const won = (n: number | null) => (n == null ? '-' : `월 ${n.toLocaleString('ko-KR')}원`);
+const ddayLabel = (n: number) => (n === 0 ? 'D-DAY' : `D-${n}`);
+---
+
+<AdminLayout title="알림" active="alerts" authed={authed} configured={configured}>
+  <h1 class="ad-title">알림 대시보드</h1>
+
+  {missingTable ? (
+    <div class="ad-card">
+      <p class="ad-err">customers/policies 테이블이 아직 없습니다.</p>
+      <p style="color:var(--muted);margin:0.4rem 0 0">
+        Supabase SQL Editor에서 <code>0002_customers_policies.sql</code> 실행 후 새로고침하세요.
+      </p>
+    </div>
+  ) : dbError ? (
+    <div class="ad-card"><p class="ad-err">DB 오류: {dbError}</p></div>
+  ) : (
+    <Fragment>
+      <div class="ad-stats">
+        <div><b>{expiring.length}</b>만기 임박(3개월)</div>
+        <div><b>{renewing.length}</b>갱신 임박(1개월)</div>
+        <div><b>{birthdays.length}</b>이번 달 생일</div>
+        <div><b>{anniversaries.length}</b>이번 달 기념일</div>
+      </div>
+
+      {/* 만기 임박 */}
+      <section class="al-sec">
+        <h2 class="al-h2">📆 계약 만기 임박 <span class="al-desc">만기 3개월 전 · 갱신/재가입 안내 대상</span></h2>
+        {expiring.length === 0 ? <p class="al-empty">해당 대상이 없습니다.</p> : (
+          <div class="ad-tablewrap">
+            <table class="ad-table">
+              <thead><tr><th>D-day</th><th>고객</th><th>보험</th><th>만기일</th><th>보험료</th></tr></thead>
+              <tbody>
+                {expiring.map(({ p, cust, dday }) => (
+                  <tr>
+                    <td><span class="dday dday--red">{ddayLabel(dday)}</span></td>
+                    <td class="ad-nowrap">{cust?.name ?? '-'}<div class="ad-sub">{cust?.phone}</div></td>
+                    <td>{p.insurer} · {p.product_name}</td>
+                    <td class="ad-nowrap">{p.expiry_date}</td>
+                    <td class="ad-nowrap">{won(p.monthly_premium)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* 갱신 임박 */}
+      <section class="al-sec">
+        <h2 class="al-h2">🔄 갱신 임박 <span class="al-desc">매년 갱신 · 보험료/약관 변경 확인 안내 대상</span></h2>
+        {renewing.length === 0 ? <p class="al-empty">해당 대상이 없습니다.</p> : (
+          <div class="ad-tablewrap">
+            <table class="ad-table">
+              <thead><tr><th>D-day</th><th>고객</th><th>보험</th><th>갱신일</th><th>현재 보험료</th></tr></thead>
+              <tbody>
+                {renewing.map(({ p, cust, dday }) => (
+                  <tr>
+                    <td><span class="dday dday--amber">{ddayLabel(dday)}</span></td>
+                    <td class="ad-nowrap">{cust?.name ?? '-'}<div class="ad-sub">{cust?.phone}</div></td>
+                    <td>{p.insurer} · {p.product_name}</td>
+                    <td class="ad-nowrap">{p.renewal_date}</td>
+                    <td class="ad-nowrap">{won(p.monthly_premium)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* 생일 / 기념일 */}
+      <div class="al-two">
+        <section class="al-sec">
+          <h2 class="al-h2">🎂 이번 달 생일</h2>
+          {birthdays.length === 0 ? <p class="al-empty">해당 대상이 없습니다.</p> : (
+            <ul class="al-list">
+              {birthdays.map(({ c, day }) => (
+                <li>
+                  <span class="al-day">{curMonth}/{day}</span>
+                  <span class="al-name">{c.name}</span>
+                  <span class="al-phone">{c.phone}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section class="al-sec">
+          <h2 class="al-h2">💍 이번 달 기념일</h2>
+          {anniversaries.length === 0 ? <p class="al-empty">해당 대상이 없습니다.</p> : (
+            <ul class="al-list">
+              {anniversaries.map(({ c, day }) => (
+                <li>
+                  <span class="al-day">{curMonth}/{day}</span>
+                  <span class="al-name">{c.name}</span>
+                  <span class="al-phone">{c.phone}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <p class="al-note">
+        ※ 대상자를 확인하고 전화·문자로 안내하세요. 자동 발송(문자·카카오 알림톡)은 발송 대행사 연동 시 추가할 수 있습니다.
+      </p>
+    </Fragment>
+  )}
+
+  <style>
+    .al-sec { margin-top: 1.6rem; }
+    .al-h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
+    .al-desc { font-size: 0.82rem; color: var(--muted); font-weight: 400; margin-left: 0.3rem; }
+    .al-empty { color: var(--muted); background: var(--bg); border: 1px dashed var(--border); border-radius: 12px; padding: 1rem; margin: 0; }
+    .dday { font-weight: 800; font-size: 0.85rem; padding: 0.2rem 0.5rem; border-radius: 999px; white-space: nowrap; }
+    .dday--red { background: #fee2e2; color: #b91c1c; }
+    .dday--amber { background: #fef3c7; color: #b45309; }
+    .al-two { display: grid; gap: 1rem; }
+    @media (min-width: 720px) { .al-two { grid-template-columns: 1fr 1fr; } }
+    .al-list { list-style: none; margin: 0; padding: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .al-list li { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); }
+    .al-list li:last-child { border-bottom: none; }
+    .al-day { background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.85rem; padding: 0.15rem 0.5rem; border-radius: 999px; }
+    .al-name { font-weight: 700; }
+    .al-phone { color: var(--muted); font-size: 0.88rem; margin-left: auto; }
+    .al-note { color: var(--muted); font-size: 0.82rem; margin-top: 1.6rem; line-height: 1.6; }
+  </style>
+</AdminLayout>
