@@ -15,6 +15,15 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* 가로 넘침 방지 → 화면 폭에 맞춰 자동 조정(모바일 레이아웃 정상 적용) */
+  overflow-x: clip;
+}
+
+img,
+video,
+iframe,
+table {
+  max-width: 100%;
 }
 
 body {
