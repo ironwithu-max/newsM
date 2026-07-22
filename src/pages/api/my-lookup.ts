@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSupabaseAdmin } from '../../platform/supabaseServer';
 import { getProduct } from '../../platform/products';
 import { getCategory } from '../../platform/categories';
+import { isOtpEnabled, isPhoneVerified, VERIFY_COOKIE } from '../../platform/otp';
 
 export const prerender = false;
 
@@ -18,7 +19,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   let phone = '';
   try {
     phone = String((await request.json()).phone ?? '').trim();
@@ -27,6 +28,11 @@ export const POST: APIRoute = async ({ request }) => {
   }
   if (!isValidPhone(phone)) {
     return json({ ok: false, error: '올바른 휴대폰 번호를 입력해 주세요.' }, 422);
+  }
+
+  // OTP 활성 시: 본인 인증(문자) 완료돼야 조회 가능
+  if (isOtpEnabled() && !isPhoneVerified(phone, cookies.get(VERIFY_COOKIE)?.value)) {
+    return json({ ok: false, needVerify: true, error: '문자 본인인증이 필요합니다.' }, 401);
   }
 
   const supabase = getSupabaseAdmin();

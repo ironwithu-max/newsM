@@ -1,12 +1,14 @@
 ---
 import PlatformLayout from '../layouts/PlatformLayout.astro';
+import { isOtpEnabled } from '../platform/otp';
 
 export const prerender = false;
+const otpEnabled = isOtpEnabled();
 ---
 
 <PlatformLayout
   title="내 보험 관리"
-  description="신청하신 상담 내역과 진행 상태를 휴대폰 번호로 조회하세요."
+  description="가입하신 보험 계약과 상담 내역을 휴대폰 번호로 조회하세요."
 >
   <div class="plat" style="padding-top:1.6rem;max-width:640px">
     <nav class="crumbs">
@@ -15,23 +17,34 @@ export const prerender = false;
 
     <h1 style="font-size:1.8rem;margin:0.8rem 0 0.3rem">내 보험 관리</h1>
     <p style="color:var(--muted);margin:0">
-      상담 신청 시 입력한 휴대폰 번호로 <b>상담 내역과 진행 상태</b>를 조회할 수 있습니다.
+      휴대폰 번호로 <b>가입 보험 계약과 상담 내역</b>을 조회할 수 있습니다. 별도 가입·로그인은 필요 없습니다.
     </p>
 
-    <form id="lookupForm" class="form-card" style="margin-top:1.4rem">
+    <form id="lookupForm" class="form-card" style="margin-top:1.4rem" data-otp={otpEnabled ? '1' : '0'}>
       <div class="form-field" style="margin-bottom:0.9rem">
         <label for="phone">휴대폰 번호</label>
         <input class="input" id="phone" name="phone" type="tel" inputmode="numeric" placeholder="010-1234-5678" />
         <p class="field-error" id="phoneErr" hidden></p>
       </div>
-      <button type="submit" class="btn btn--primary btn--block" id="lookupBtn">상담 내역 조회</button>
+
+      {/* OTP 활성 시에만 노출되는 인증번호 입력칸 */}
+      <div class="form-field" id="codeField" hidden style="margin-bottom:0.9rem">
+        <label for="code">인증번호 (문자 6자리)</label>
+        <input class="input" id="code" name="code" type="tel" inputmode="numeric" maxlength="6" placeholder="000000" />
+        <p class="field-error" id="codeErr" hidden></p>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block" id="lookupBtn">
+        {otpEnabled ? '인증번호 받기' : '조회하기'}
+      </button>
     </form>
 
     <div id="result" style="margin-top:1.4rem"></div>
 
     <p class="disclaimer">
-      ※ 데모 단계에서는 휴대폰 번호만으로 조회합니다. 실제 서비스에서는 본인 확인(SMS 인증 등)
-      절차를 거쳐 개인정보를 보호합니다.
+      {otpEnabled
+        ? '※ 본인 확인을 위해 휴대폰 문자 인증 후 조회됩니다. 조회 정보는 본인에게만 제공됩니다.'
+        : '※ 현재는 휴대폰 번호로 간편 조회합니다. (문자 본인인증은 발송사 연동 시 자동 적용)'}
     </p>
   </div>
 </PlatformLayout>
@@ -54,14 +67,17 @@ export const prerender = false;
       year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    phoneErr.hidden = true;
-    result.innerHTML = '';
-    const phone = (document.getElementById('phone') as HTMLInputElement).value.trim();
+  const OTP = form.dataset.otp === '1';
+  const codeField = document.getElementById('codeField') as HTMLElement;
+  const codeErr = document.getElementById('codeErr') as HTMLElement;
+  const phoneInput = document.getElementById('phone') as HTMLInputElement;
+  let stage: 'phone' | 'code' = 'phone';
+  const setBtn = (t: string, dis: boolean) => { btn.textContent = t; btn.disabled = dis; };
+  const idleLabel = () => (OTP ? '인증번호 받기' : '조회하기');
 
-    btn.disabled = true;
-    btn.textContent = '조회 중...';
+  async function doLookup(phone: string) {
+    result.innerHTML = '';
+    setBtn('조회 중...', true);
     try {
       const res = await fetch('/api/my-lookup', {
         method: 'POST',
@@ -69,7 +85,6 @@ export const prerender = false;
         body: JSON.stringify({ phone }),
       });
       const data = await res.json();
-
       if (!data.ok) {
         phoneErr.textContent = data.error ?? '조회에 실패했습니다.';
         phoneErr.hidden = false;
@@ -132,8 +147,56 @@ export const prerender = false;
       phoneErr.textContent = '네트워크 오류가 발생했습니다. 다시 시도해 주세요.';
       phoneErr.hidden = false;
     } finally {
-      btn.disabled = false;
-      btn.textContent = '상담 내역 조회';
+      setBtn(idleLabel(), false);
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    phoneErr.hidden = true;
+    codeErr.hidden = true;
+    const phone = phoneInput.value.trim();
+
+    // OTP 비활성 → 바로 조회
+    if (!OTP) { await doLookup(phone); return; }
+
+    // OTP 활성: 1) 인증번호 발송 → 2) 확인 → 조회
+    if (stage === 'phone') {
+      setBtn('발송 중...', true);
+      try {
+        const res = await fetch('/api/otp-request', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone }),
+        });
+        const data = await res.json();
+        if (data.enabled === false) { await doLookup(phone); return; } // 폴백
+        if (!data.ok) { phoneErr.textContent = data.error ?? '발송 실패'; phoneErr.hidden = false; setBtn(idleLabel(), false); return; }
+        codeField.hidden = false;
+        stage = 'code';
+        setBtn('인증 후 조회', false);
+      } catch {
+        phoneErr.textContent = '네트워크 오류가 발생했습니다.';
+        phoneErr.hidden = false; setBtn(idleLabel(), false);
+      }
+      return;
+    }
+
+    // stage === 'code'
+    const code = (document.getElementById('code') as HTMLInputElement).value.trim();
+    setBtn('확인 중...', true);
+    try {
+      const vres = await fetch('/api/otp-verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code }),
+      });
+      const vdata = await vres.json();
+      if (!vdata.ok) { codeErr.textContent = vdata.error ?? '인증 실패'; codeErr.hidden = false; setBtn('인증 후 조회', false); return; }
+      await doLookup(phone); // 인증 성공 → 조회
+      stage = 'phone'; codeField.hidden = true;
+      (document.getElementById('code') as HTMLInputElement).value = '';
+    } catch {
+      codeErr.textContent = '네트워크 오류가 발생했습니다.';
+      codeErr.hidden = false; setBtn('인증 후 조회', false);
     }
   });
 </script>
