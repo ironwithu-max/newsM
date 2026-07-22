@@ -76,14 +76,42 @@ export const prerender = false;
         return;
       }
 
-      if (data.count === 0) {
+      const won = (n: number | null) => (n == null ? '-' : `월 ${Number(n).toLocaleString('ko-KR')}원`);
+      const policies = data.policies ?? [];
+      const consults = data.consultations ?? [];
+
+      if (policies.length === 0 && consults.length === 0) {
         result.innerHTML =
-          '<div class="empty">해당 번호로 접수된 상담 내역이 없습니다. <a href="/consult/">상담 신청하기</a></div>';
+          '<div class="empty">해당 번호로 등록된 보험·상담 내역이 없습니다. <a href="/consult/">상담 신청하기</a></div>';
         return;
       }
 
-      const rows = data.items
-        .map((it: any) => {
+      let html = '';
+      if (data.name) {
+        html += `<p style="margin:0 0 1rem;color:var(--muted)"><b style="color:var(--fg)">${data.name}</b> 님의 조회 결과입니다.</p>`;
+      }
+
+      // 내 보험 계약
+      if (policies.length > 0) {
+        const items = policies.map((p: any) => `
+          <div class="cov-row" style="align-items:flex-start">
+            <div>
+              <div style="font-weight:700">${p.insurer} · ${p.product}</div>
+              <div class="ad-sub" style="color:var(--muted);font-size:0.82rem;margin-top:0.2rem">
+                ${p.category ? p.category + ' · ' : ''}${won(p.monthlyPremium)}${p.agent ? ' · 담당 ' + p.agent : ''}
+              </div>
+              <div style="color:var(--muted);font-size:0.8rem;margin-top:0.2rem">
+                ${p.startDate ? '가입 ' + p.startDate : ''}${p.expiryDate ? ' · 만기 ' + p.expiryDate : ''}${p.renewalDate ? ' · 갱신 ' + p.renewalDate : ''}
+              </div>
+            </div>
+          </div>`).join('');
+        html += `<h2 style="font-size:1.15rem;margin:0 0 0.6rem">🛡️ 내 보험 계약 <span style="color:var(--point)">${policies.length}</span>건</h2>
+                 <div class="cov-table" style="margin-bottom:1.6rem">${items}</div>`;
+      }
+
+      // 상담 내역
+      if (consults.length > 0) {
+        const rows = consults.map((it: any) => {
           const s = STATUS[it.status] ?? STATUS.new;
           return `
             <div class="cov-row" style="align-items:flex-start">
@@ -94,12 +122,12 @@ export const prerender = false;
               </div>
               <span style="background:${s.bg};color:${s.color};font-weight:700;font-size:0.82rem;padding:0.25rem 0.6rem;border-radius:999px;white-space:nowrap">${s.label}</span>
             </div>`;
-        })
-        .join('');
+        }).join('');
+        html += `<h2 style="font-size:1.15rem;margin:0 0 0.6rem">📝 상담 내역 <span style="color:var(--point)">${consults.length}</span>건</h2>
+                 <div class="cov-table">${rows}</div>`;
+      }
 
-      result.innerHTML = `
-        <h2 style="font-size:1.15rem;margin:0 0 0.6rem">상담 내역 <span style="color:var(--point)">${data.count}</span>건</h2>
-        <div class="cov-table">${rows}</div>`;
+      result.innerHTML = html;
     } catch {
       phoneErr.textContent = '네트워크 오류가 발생했습니다. 다시 시도해 주세요.';
       phoneErr.hidden = false;

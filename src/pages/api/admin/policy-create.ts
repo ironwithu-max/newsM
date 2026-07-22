@@ -40,6 +40,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     start_date: String(d.start_date ?? '').trim() || null,
     expiry_date: String(d.expiry_date ?? '').trim() || null,
     renewal_date: String(d.renewal_date ?? '').trim() || null,
+    agent: String(d.agent ?? '').trim() || null,
     status: 'active',
   };
 

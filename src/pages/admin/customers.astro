@@ -14,13 +14,13 @@ const canDeleteHere = authed && canDelete(cookieToken); // newsm1만 true
 interface Customer {
   id: string; name: string; phone: string; email: string | null;
   birthday: string | null; anniversary: string | null; memo: string | null;
-  source: string; created_at: string;
+  agent: string | null; source: string; created_at: string;
 }
 interface Policy {
   id: string; customer_id: string; insurer: string; product_name: string;
   category_slug: string | null; monthly_premium: number | null;
   start_date: string | null; expiry_date: string | null; renewal_date: string | null;
-  status: string;
+  agent: string | null; status: string;
 }
 
 let customers: Customer[] = [];
@@ -85,6 +85,7 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
             <label>이름*<input name="name" required placeholder="홍길동" /></label>
             <label>휴대폰*<input name="phone" required placeholder="010-1234-5678" /></label>
             <label>이메일<input name="email" type="email" placeholder="선택" /></label>
+            <label>유입 영업자<input name="agent" placeholder="담당 설계사명" /></label>
             <label>생일<input name="birthday" type="date" /></label>
             <label>기념일<input name="anniversary" type="date" /></label>
             <label>메모<input name="memo" placeholder="선택" /></label>
@@ -112,6 +113,7 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
                 {categories.map((c) => <option value={c.slug}>{c.name}</option>)}
               </select>
             </label>
+            <label>계약 영업자<input name="agent" placeholder="체결 설계사명" /></label>
             <label>월 보험료<input name="monthly_premium" inputmode="numeric" placeholder="원" /></label>
             <label>가입일<input name="start_date" type="date" /></label>
             <label>만기일<input name="expiry_date" type="date" /></label>
@@ -145,6 +147,7 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
                   </div>
                 </div>
                 <div class="cust-info">
+                  {c.agent && <span class="cust-agent">👤 유입 영업자 {c.agent}</span>}
                   {c.birthday && <span>🎂 생일 {c.birthday}</span>}
                   {c.anniversary && <span>💍 기념일 {c.anniversary}</span>}
                   {c.memo && <span>📝 {c.memo}</span>}
@@ -156,7 +159,7 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
                     <table class="ad-table">
                       <thead>
                         <tr>
-                          <th>보험사</th><th>상품</th><th>보험료</th><th>가입</th><th>만기</th><th>갱신</th>
+                          <th>보험사</th><th>상품</th><th>영업자</th><th>보험료</th><th>가입</th><th>만기</th><th>갱신</th>
                           {canDeleteHere && <th></th>}
                         </tr>
                       </thead>
@@ -170,6 +173,7 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
                                 <div class="ad-sub">{getCategory(p.category_slug)?.name ?? p.category_slug}</div>
                               )}
                             </td>
+                            <td class="ad-nowrap">{p.agent ?? '-'}</td>
                             <td class="ad-nowrap">{won(p.monthly_premium)}</td>
                             <td class="ad-nowrap">{d(p.start_date)}</td>
                             <td class="ad-nowrap">{d(p.expiry_date)}</td>
@@ -232,6 +236,7 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
     .cust-name { font-weight: 800; font-size: 1.1rem; }
     .cust-meta { color: var(--muted); font-size: 0.9rem; margin-left: 0.5rem; }
     .cust-info { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.5rem; color: var(--muted); font-size: 0.88rem; }
+    .cust-agent { color: var(--accent); font-weight: 600; }
     .cust-nopolicy { color: var(--muted); font-size: 0.9rem; margin: 0.6rem 0 0; }
   </style>
 

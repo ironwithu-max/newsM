@@ -38,6 +38,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     email: String(d.email ?? '').trim() || null,
     birthday: String(d.birthday ?? '').trim() || null,
     anniversary: String(d.anniversary ?? '').trim() || null,
+    agent: String(d.agent ?? '').trim() || null,
     memo: String(d.memo ?? '').trim() || null,
     source: 'direct',
   };
