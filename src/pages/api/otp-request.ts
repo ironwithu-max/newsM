@@ -39,6 +39,9 @@ export const POST: APIRoute = async ({ request }) => {
   });
   if (error) return json({ ok: false, error: '인증번호 발급 오류' }, 500);
 
-  await sendSms(phone, `[Life news] 본인확인 인증번호 ${code} (5분 내 입력)`);
+  const sent = await sendSms(phone, `[Life news] 본인확인 인증번호 ${code} (5분 내 입력)`);
+  if (!sent) {
+    return json({ ok: false, error: '인증번호 발송에 실패했습니다. 번호를 확인 후 다시 시도해 주세요.' }, 502);
+  }
   return json({ ok: true });
 };
