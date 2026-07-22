@@ -20,13 +20,17 @@ export function isValidPhone(p: string): boolean {
   return /^01[016789]\d{7,8}$/.test(normPhone(p));
 }
 
-/** 발송사(문자) 키가 설정돼 있는지 */
+/** 솔라피(Solapi) 발송 키·발신번호가 모두 설정돼 있는지 */
 export function isSmsConfigured(): boolean {
-  return env('SMS_API_KEY').length > 0;
+  return (
+    env('SOLAPI_API_KEY').length > 0 &&
+    env('SOLAPI_API_SECRET').length > 0 &&
+    normPhone(env('SOLAPI_SENDER')).length > 0
+  );
 }
-/** OTP 인증을 실제로 요구할지 (플래그 + 발송사 모두 준비돼야 true) */
+/** OTP 인증 요구 여부. 솔라피 준비되면 자동 ON (OTP_ENABLED=false 로 강제 끌 수 있음) */
 export function isOtpEnabled(): boolean {
-  return env('OTP_ENABLED') === 'true' && isSmsConfigured();
+  return isSmsConfigured() && env('OTP_ENABLED') !== 'false';
 }
 
 export function genCode(): string {
@@ -49,16 +53,33 @@ export function isPhoneVerified(phone: string, cookie: string | undefined): bool
 export const VERIFY_COOKIE = 'my_verified';
 
 /**
- * 실제 문자 발송. 구조만 — 발송사 연동 지점.
- * 연동 예시(알리고): POST https://apis.aligo.in/send/
- *   body: { key, user_id, sender, receiver, msg }
- * 다른 대행사(NHN Cloud / 네이버 SENS / 카카오 알림톡)도 이 함수만 교체하면 됨.
+ * 솔라피(Solapi) 문자 발송. v4 HMAC-SHA256 인증.
+ *  필요 env: SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER(등록된 발신번호)
  */
 export async function sendSms(phone: string, text: string): Promise<boolean> {
-  if (!isSmsConfigured()) return false;
-  // TODO: 아래에 발송사 API 호출 구현 후 true 반환
-  //   const key = env('SMS_API_KEY');
-  //   const res = await fetch('https://apis.aligo.in/send/', { method:'POST', body: new URLSearchParams({...}) });
-  console.log(`[otp] (발송 미연동) ${phone} → ${text}`);
-  return false;
+  const apiKey = env('SOLAPI_API_KEY');
+  const apiSecret = env('SOLAPI_API_SECRET');
+  const from = normPhone(env('SOLAPI_SENDER'));
+  if (!apiKey || !apiSecret || !from) return false;
+
+  const date = new Date().toISOString();
+  const salt = crypto.randomBytes(32).toString('hex');
+  const signature = crypto.createHmac('sha256', apiSecret).update(date + salt).digest('hex');
+  const authorization = `HMAC-SHA256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${signature}`;
+
+  try {
+    const res = await fetch('https://api.solapi.com/messages/v4/send', {
+      method: 'POST',
+      headers: { Authorization: authorization, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: { to: normPhone(phone), from, text } }),
+    });
+    if (!res.ok) {
+      console.error('[solapi] 발송 실패', res.status, await res.text());
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('[solapi] 오류', e instanceof Error ? e.message : e);
+    return false;
+  }
 }
