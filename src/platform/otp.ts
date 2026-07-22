@@ -56,11 +56,11 @@ export const VERIFY_COOKIE = 'my_verified';
  * 솔라피(Solapi) 문자 발송. v4 HMAC-SHA256 인증.
  *  필요 env: SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER(등록된 발신번호)
  */
-export async function sendSms(phone: string, text: string): Promise<boolean> {
+export async function sendSms(phone: string, text: string): Promise<{ ok: boolean; error?: string }> {
   const apiKey = env('SOLAPI_API_KEY');
   const apiSecret = env('SOLAPI_API_SECRET');
   const from = normPhone(env('SOLAPI_SENDER'));
-  if (!apiKey || !apiSecret || !from) return false;
+  if (!apiKey || !apiSecret || !from) return { ok: false, error: 'solapi env 미설정' };
 
   const date = new Date().toISOString();
   const salt = crypto.randomBytes(32).toString('hex');
@@ -73,13 +73,15 @@ export async function sendSms(phone: string, text: string): Promise<boolean> {
       headers: { Authorization: authorization, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: { to: normPhone(phone), from, text } }),
     });
+    const body = await res.text();
     if (!res.ok) {
-      console.error('[solapi] 발송 실패', res.status, await res.text());
-      return false;
+      console.error('[solapi] 발송 실패', res.status, body);
+      return { ok: false, error: `HTTP ${res.status} ${body.slice(0, 300)}` };
     }
-    return true;
+    return { ok: true };
   } catch (e) {
-    console.error('[solapi] 오류', e instanceof Error ? e.message : e);
-    return false;
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('[solapi] 오류', msg);
+    return { ok: false, error: msg };
   }
 }
