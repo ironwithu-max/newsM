@@ -55,14 +55,15 @@ const navItems = [
       {
         !configured ? (
           <div class="ad-card ad-notice">
-            <h1>관리자 비밀번호가 설정되지 않았습니다</h1>
-            <p><code>.env</code>(및 배포 시 Vercel 환경변수)에 <code>ADMIN_PASSWORD</code>를 설정한 뒤 다시 접속하세요.</p>
+            <h1>관리자 계정이 설정되지 않았습니다</h1>
+            <p><code>.env</code>(및 배포 시 Vercel 환경변수)에 <code>ADMIN_USERS</code>와 <code>ADMIN_PASSWORD</code>를 설정한 뒤 다시 접속하세요.</p>
           </div>
         ) : !authed ? (
           <div class="ad-card ad-login">
             <h1>관리자 로그인</h1>
-            <p>고객·보험·상담 정보 조회를 위해 비밀번호를 입력하세요.</p>
+            <p>고객·보험·상담 정보 조회를 위해 아이디와 비밀번호를 입력하세요.</p>
             <form id="loginForm">
+              <input id="uid" type="text" placeholder="아이디" autocomplete="username" />
               <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
               <button type="submit">로그인</button>
             </form>
@@ -154,11 +155,12 @@ const navItems = [
         loginForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           err.hidden = true;
+          const uid = (document.getElementById('uid') as HTMLInputElement).value;
           const pw = (document.getElementById('pw') as HTMLInputElement).value;
           const res = await fetch('/api/admin-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pw }),
+            body: JSON.stringify({ username: uid, password: pw }),
           });
           const data = await res.json();
           if (data.ok) {
