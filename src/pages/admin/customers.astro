@@ -1,13 +1,15 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { ADMIN_COOKIE, isValidSession, isAdminConfigured } from '../../platform/adminAuth';
+import { ADMIN_COOKIE, isValidSession, isAdminConfigured, canDelete } from '../../platform/adminAuth';
 import { getSupabaseAdmin } from '../../platform/supabaseServer';
 import { getCategory, categories } from '../../platform/categories';
 
 export const prerender = false;
 
+const cookieToken = Astro.cookies.get(ADMIN_COOKIE)?.value;
 const configured = isAdminConfigured();
-const authed = configured && isValidSession(Astro.cookies.get(ADMIN_COOKIE)?.value);
+const authed = configured && isValidSession(cookieToken);
+const canDeleteHere = authed && canDelete(cookieToken); // newsm1만 true
 
 interface Customer {
   id: string; name: string; phone: string; email: string | null;
@@ -135,7 +137,12 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
                     <span class="cust-name">{c.name}</span>
                     <span class="cust-meta">{c.phone}{c.email ? ` · ${c.email}` : ''}</span>
                   </div>
-                  <span class="ad-badge">{c.source === 'consult' ? '상담유입' : '직접'}</span>
+                  <div class="cust-card__actions">
+                    <span class="ad-badge">{c.source === 'consult' ? '상담유입' : '직접'}</span>
+                    {canDeleteHere && (
+                      <button class="cust-del" type="button" data-del-customer={c.id} data-name={c.name}>🗑 삭제</button>
+                    )}
+                  </div>
                 </div>
                 <div class="cust-info">
                   {c.birthday && <span>🎂 생일 {c.birthday}</span>}
@@ -148,7 +155,10 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
                   <div class="ad-tablewrap" style="margin-top:0.6rem">
                     <table class="ad-table">
                       <thead>
-                        <tr><th>보험사</th><th>상품</th><th>보험료</th><th>가입</th><th>만기</th><th>갱신</th></tr>
+                        <tr>
+                          <th>보험사</th><th>상품</th><th>보험료</th><th>가입</th><th>만기</th><th>갱신</th>
+                          {canDeleteHere && <th></th>}
+                        </tr>
                       </thead>
                       <tbody>
                         {ps.map((p) => (
@@ -164,6 +174,11 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
                             <td class="ad-nowrap">{d(p.start_date)}</td>
                             <td class="ad-nowrap">{d(p.expiry_date)}</td>
                             <td class="ad-nowrap">{d(p.renewal_date)}</td>
+                            {canDeleteHere && (
+                              <td class="ad-nowrap">
+                                <button class="cust-del cust-del--sm" type="button" data-del-policy={p.id} data-name={`${p.insurer} ${p.product_name}`}>🗑</button>
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -205,7 +220,15 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
     .cust-listtitle { font-size: 1.15rem; margin: 1.8rem 0 0; }
     .cust-list { margin-top: 0.9rem; display: grid; gap: 1rem; }
     .cust-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.2rem; }
-    .cust-card__head { display: flex; align-items: center; justify-content: space-between; }
+    .cust-card__head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+    .cust-card__actions { display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
+    .cust-del {
+      border: 1px solid #fecaca; background: #fef2f2; color: #dc2626;
+      border-radius: 8px; padding: 0.3rem 0.6rem; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+    }
+    .cust-del:hover { background: #fee2e2; }
+    .cust-del--sm { padding: 0.2rem 0.45rem; }
     .cust-name { font-weight: 800; font-size: 1.1rem; }
     .cust-meta { color: var(--muted); font-size: 0.9rem; margin-left: 0.5rem; }
     .cust-info { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.5rem; color: var(--muted); font-size: 0.88rem; }
@@ -257,5 +280,28 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
     }
     wire('customerForm', '/api/admin/customer-create');
     wire('policyForm', '/api/admin/policy-create');
+
+    // 삭제 (권한 계정에서만 버튼이 렌더됨)
+    async function del(url: string, id: string, label: string) {
+      if (!confirm(`"${label}" 을(를) 삭제할까요? 되돌릴 수 없습니다.`)) return;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (data.ok) location.reload();
+      else alert('삭제 실패: ' + (data.error ?? ''));
+    }
+    document.querySelectorAll<HTMLButtonElement>('[data-del-customer]').forEach((b) =>
+      b.addEventListener('click', () =>
+        del('/api/admin/customer-delete', b.dataset.delCustomer!, `${b.dataset.name} 고객 (보유 보험 포함)`)
+      )
+    );
+    document.querySelectorAll<HTMLButtonElement>('[data-del-policy]').forEach((b) =>
+      b.addEventListener('click', () =>
+        del('/api/admin/policy-delete', b.dataset.delPolicy!, b.dataset.name!)
+      )
+    );
   </script>
 </AdminLayout>

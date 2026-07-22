@@ -37,14 +37,34 @@ export function verifyCredentials(username: string, password: string): string | 
   return tokenFor(username, real);
 }
 
+/** 쿠키 토큰과 일치하는 관리자 아이디를 반환(없으면 null) */
+export function getSessionUser(cookieToken: string | undefined): string | null {
+  const real = getAdminPassword();
+  if (!real || !cookieToken) return null;
+  const a = Buffer.from(cookieToken);
+  for (const u of getAdminUsers()) {
+    const b = Buffer.from(tokenFor(u, real));
+    if (a.length === b.length && crypto.timingSafeEqual(a, b)) return u;
+  }
+  return null;
+}
+
 /** 쿠키의 세션 토큰이 유효한 관리자 계정의 것인지 검사 */
 export function isValidSession(cookieToken: string | undefined): boolean {
-  const real = getAdminPassword();
-  if (!real || !cookieToken) return false;
-  const a = Buffer.from(cookieToken);
-  // 허용된 아이디들 중 하나의 토큰과 일치하면 유효
-  return getAdminUsers().some((u) => {
-    const b = Buffer.from(tokenFor(u, real));
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
-  });
+  return getSessionUser(cookieToken) !== null;
+}
+
+/** 삭제 권한 보유 아이디 목록 (env ADMIN_DELETE_USERS, 없으면 ADMIN_USERS 첫 계정만) */
+function getDeleteUsers(): string[] {
+  const raw = import.meta.env.ADMIN_DELETE_USERS ?? process.env.ADMIN_DELETE_USERS ?? '';
+  const explicit = String(raw).split(',').map((s) => s.trim()).filter(Boolean);
+  if (explicit.length) return explicit;
+  const users = getAdminUsers();
+  return users.length ? [users[0]] : []; // 기본: 첫 번째 계정(=newsm1)만
+}
+
+/** 현재 세션 계정이 삭제 권한을 가졌는지 */
+export function canDelete(cookieToken: string | undefined): boolean {
+  const u = getSessionUser(cookieToken);
+  return !!u && getDeleteUsers().includes(u);
 }
