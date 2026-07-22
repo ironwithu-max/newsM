@@ -67,13 +67,16 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
     <div class="ad-card"><p class="ad-err">DB 오류: {dbError}</p></div>
   ) : (
     <Fragment>
-      <div class="ad-stats">
-        <div><b>{customers.length}</b>가입 고객</div>
-        <div><b>{policies.length}</b>보유 계약</div>
+      <div class="cust-topbar">
+        <div class="ad-stats">
+          <div><b>{customers.length}</b>가입 고객</div>
+          <div><b>{policies.length}</b>보유 계약</div>
+        </div>
+        <button type="button" id="toggleForms" class="cust-addbtn">➕ 새 등록</button>
       </div>
 
-      {/* 등록 폼 2종 */}
-      <div class="cust-forms">
+      {/* 등록 폼 2종 (기본 접힘) */}
+      <div class="cust-forms" id="custForms" hidden>
         <form class="ad-card cust-form" id="customerForm">
           <h3>➕ 고객 등록</h3>
           <div class="cf-grid">
@@ -118,8 +121,9 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
       </div>
 
       {/* 고객 목록 */}
+      <h2 class="cust-listtitle">가입 고객 목록</h2>
       {customers.length === 0 ? (
-        <div class="ad-card" style="margin-top:1.2rem"><p>등록된 고객이 없습니다. 위에서 고객을 등록하세요.</p></div>
+        <div class="ad-card"><p>등록된 고객이 없습니다. 위 “➕ 새 등록”에서 고객을 추가하세요.</p></div>
       ) : (
         <div class="cust-list">
           {customers.map((c) => {
@@ -175,7 +179,16 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
   )}
 
   <style>
-    .cust-forms { display: grid; gap: 1rem; }
+    .cust-topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .cust-addbtn {
+      background: var(--accent); color: #fff; border: none; border-radius: 10px;
+      padding: 0.6rem 1.1rem; font-weight: 700; cursor: pointer; font-size: 0.95rem;
+      align-self: flex-start;
+    }
+    .cust-addbtn:hover { opacity: 0.9; }
+    .cust-addbtn.on { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+    .cust-forms[hidden] { display: none; }
+    .cust-forms { margin-top: 1rem; display: grid; gap: 1rem; }
     @media (min-width: 860px) { .cust-forms { grid-template-columns: 1fr 1fr; } }
     .cust-form h3 { margin: 0 0 0.8rem; font-size: 1.05rem; }
     .cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
@@ -189,7 +202,8 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
       margin-top: 0.8rem; background: var(--accent); color: #fff; border: none;
       border-radius: 8px; padding: 0.55rem 1.1rem; font-weight: 700; cursor: pointer;
     }
-    .cust-list { margin-top: 1.4rem; display: grid; gap: 1rem; }
+    .cust-listtitle { font-size: 1.15rem; margin: 1.8rem 0 0; }
+    .cust-list { margin-top: 0.9rem; display: grid; gap: 1rem; }
     .cust-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.2rem; }
     .cust-card__head { display: flex; align-items: center; justify-content: space-between; }
     .cust-name { font-weight: 800; font-size: 1.1rem; }
@@ -199,6 +213,17 @@ const missingTable = dbError && /relation|table|does not exist|schema cache/i.te
   </style>
 
   <script>
+    // 등록 폼 접기/펼치기
+    const toggleBtn = document.getElementById('toggleForms');
+    const forms = document.getElementById('custForms');
+    if (toggleBtn && forms) {
+      toggleBtn.addEventListener('click', () => {
+        const open = forms.hasAttribute('hidden');
+        if (open) { forms.removeAttribute('hidden'); toggleBtn.textContent = '✕ 닫기'; toggleBtn.classList.add('on'); }
+        else { forms.setAttribute('hidden', ''); toggleBtn.textContent = '➕ 새 등록'; toggleBtn.classList.remove('on'); }
+      });
+    }
+
     function wire(formId: string, url: string) {
       const form = document.getElementById(formId) as HTMLFormElement | null;
       if (!form) return;
