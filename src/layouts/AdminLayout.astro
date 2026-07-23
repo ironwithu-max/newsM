@@ -33,9 +33,7 @@ const navItems = [
       <div class="ad-wrap ad-header__row">
         <strong class="ad-brand">🛡️ Life news · 관리자</strong>
         {authed && (
-          <form method="POST" action="/api/admin-logout" style="margin:0">
-            <button class="ad-logout" type="submit">로그아웃</button>
-          </form>
+          <button class="ad-logout" type="button" id="logoutBtn">로그아웃</button>
         )}
       </div>
       {authed && (
@@ -152,6 +150,18 @@ const navItems = [
     </style>
 
     <script>
+      // 로그아웃 → 쿠키 삭제 후 메인페이지로 이동 (fetch로 CSRF 차단 회피)
+      const logoutBtn = document.getElementById('logoutBtn');
+      logoutBtn?.addEventListener('click', async () => {
+        try {
+          await fetch('/api/admin-logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } catch {}
+        location.href = '/';
+      });
+
       const loginForm = document.getElementById('loginForm') as HTMLFormElement | null;
       if (loginForm) {
         const err = document.getElementById('loginErr') as HTMLElement;

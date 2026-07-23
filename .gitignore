@@ -19,3 +19,5 @@ npm-debug.log*
 .vercel/
 # 광고 영상(대용량)
 광고동영상/
+
+.vercel

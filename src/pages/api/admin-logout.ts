@@ -3,7 +3,10 @@ import { ADMIN_COOKIE } from '../../platform/adminAuth';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ cookies, redirect }) => {
+export const POST: APIRoute = async ({ cookies }) => {
   cookies.delete(ADMIN_COOKIE, { path: '/' });
-  return redirect('/admin');
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 };
