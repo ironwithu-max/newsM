@@ -55,6 +55,7 @@ const isActive = (href: string) =>
           <a href="/my/" class:list={[isActive('/my') && 'on']}>고객관리</a>
           <a href="/recruit/" class:list={[isActive('/recruit') && 'on']}>입사안내</a>
           <a href="/blog/" class:list={['plat-nav__hl', isActive('/blog') && 'on']}>💰 돈이되는 정보</a>
+          <a href="/admin/" class:list={['plat-nav__admin', isActive('/admin') && 'on']}>🔒 관리자 로그인</a>
         </div>
       </nav>
     </header>
@@ -148,6 +149,17 @@ const isActive = (href: string) =>
       .plat-nav__row a.plat-nav__hl:hover,
       .plat-nav__row a.plat-nav__hl.on {
         background: #fde4f0;
+      }
+      .plat-nav__row a.plat-nav__admin {
+        border: 1px solid var(--border);
+        color: var(--muted);
+        margin-left: 0.2rem;
+      }
+      .plat-nav__row a.plat-nav__admin:hover,
+      .plat-nav__row a.plat-nav__admin.on {
+        border-color: var(--fg);
+        color: var(--fg);
+        background: var(--bg-soft);
       }
       .plat-footer {
         margin-top: 3rem;
