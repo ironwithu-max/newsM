@@ -41,8 +41,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   const sent = await sendSms(phone, `[Life news] 본인확인 인증번호 ${code} (5분 내 입력)`);
   if (!sent.ok) {
-    // 진단용: 솔라피 원인 detail 임시 노출 (원인 확인 후 제거)
-    return json({ ok: false, error: '인증번호 발송에 실패했습니다. 번호를 확인 후 다시 시도해 주세요.', detail: sent.error }, 502);
+    // 상세 원인은 서버 로그에만 기록(sendSms 내부), 클라이언트에는 일반 메시지
+    return json({ ok: false, error: '인증번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.' }, 502);
   }
   return json({ ok: true });
 };
