@@ -16,7 +16,7 @@ interface Props {
 }
 
 const { slot = '', format = 'auto', label = '광고', height } = Astro.props;
-const enabled = SITE.adsenseClient.startsWith('ca-pub-');
+const enabled = SITE.adsenseClient.startsWith('ca-pub-') && slot !== '';
 const fixed = typeof height === 'number';
 ---
 
@@ -35,15 +35,7 @@ const fixed = typeof height === 'number';
         (adsbygoogle = window.adsbygoogle || []).push({});
       </script>
     </div>
-  ) : (
-    <div
-      class:list={['ad-slot', 'ad-slot--placeholder', fixed && 'ad-slot--fixed']}
-      style={fixed ? `height:${height}px;min-height:${height}px` : undefined}
-      aria-hidden="true"
-    >
-      <span>{label} 자리 (승인 후 표시)</span>
-    </div>
-  )
+  ) : null
 }
 
 <style>
