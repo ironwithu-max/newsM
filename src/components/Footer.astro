@@ -1,16 +1,51 @@
 ---
-import { SITE } from '../consts';
+import { COMPANY } from '../consts';
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
   <div class="wrap">
-    <nav>
-      <a href="/about/">소개</a>
-      <a href="/contact/">연락처</a>
-      <a href="/privacy/">개인정보처리방침</a>
-    </nav>
-    <p>© {year} {SITE.name}. All rights reserved.</p>
+    <div class="top">
+      <div class="col col--brand">
+        <div class="fbrand">
+          <span class="fbrand-mark">MINAM</span>
+          <span class="fbrand-name">미남건축디자인</span>
+        </div>
+        <p class="ftag">{COMPANY.slogan}</p>
+        <p class="fnote">{COMPANY.legalName} · 대표 {COMPANY.ceo}</p>
+      </div>
+
+      <div class="col">
+        <h4>사업분야</h4>
+        <p>{COMPANY.fields}</p>
+        <p class="dim">{COMPANY.licenses}</p>
+      </div>
+
+      <div class="col">
+        <h4>오시는 길</h4>
+        <p><strong>본사</strong> {COMPANY.hqAddress}</p>
+        <p><strong>지사</strong> {COMPANY.branchAddress}</p>
+      </div>
+
+      <div class="col">
+        <h4>문의</h4>
+        <p><a href={`tel:${COMPANY.tel}`}>☎ {COMPANY.tel}</a></p>
+        <p><a href={`mailto:${COMPANY.email}`}>✉ {COMPANY.email}</a></p>
+        <p class="links">
+          <a href={COMPANY.blog} target="_blank" rel="noopener">블로그</a>
+          <a href={COMPANY.site} target="_blank" rel="noopener">웹사이트</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <p>© {year} {COMPANY.legalName} ({COMPANY.brandName}). All rights reserved.</p>
+      <nav>
+        <a href="/about/">소개</a>
+        <a href="/#contact">상담문의</a>
+        <a href="/privacy/">개인정보처리방침</a>
+      </nav>
+    </div>
   </div>
 </footer>
 
@@ -18,26 +53,119 @@ const year = new Date().getFullYear();
   .site-footer {
     border-top: 1px solid var(--border);
     margin-top: 3rem;
-    background: var(--bg-soft);
+    background: var(--ink);
+    color: #cfc7bc;
   }
   .wrap {
-    max-width: 860px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 1.5rem 1.2rem 2.5rem;
-    color: var(--muted);
-    font-size: 0.9rem;
+    padding: 2.4rem 1.2rem 2rem;
   }
-  nav {
+  .top {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1.3fr 1fr;
+    gap: 1.6rem 1.4rem;
+  }
+  .col h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .col p {
+    margin: 0.2rem 0;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  .col p strong {
+    color: #efe9e0;
+    font-weight: 700;
+    margin-right: 0.15rem;
+  }
+  .col .dim {
+    color: #9b9287;
+    font-size: 0.82rem;
+  }
+  .fbrand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .fbrand-mark {
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    font-size: 0.95rem;
+    color: #fff;
+    border: 1.5px solid var(--accent);
+    padding: 0.15rem 0.35rem 0.1rem 0.45rem;
+    border-radius: 5px;
+    line-height: 1;
+  }
+  .fbrand-name {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .ftag {
+    margin: 0.7rem 0 0.3rem !important;
+    color: #e7ddcf;
+    font-size: 0.95rem !important;
+  }
+  .fnote {
+    color: #9b9287 !important;
+    font-size: 0.83rem !important;
+  }
+  .col a {
+    color: #cfc7bc;
+    text-decoration: none;
+  }
+  .col a:hover {
+    color: var(--accent);
+  }
+  .links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem !important;
+  }
+  .bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 1.8rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    color: #9b9287;
+    font-size: 0.82rem;
+  }
+  .bottom p {
+    margin: 0;
+  }
+  .bottom nav {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
-    margin-bottom: 0.6rem;
   }
-  nav a {
-    color: var(--muted);
+  .bottom nav a {
+    color: #9b9287;
     text-decoration: none;
   }
-  nav a:hover {
+  .bottom nav a:hover {
     color: var(--accent);
+  }
+
+  @media (max-width: 820px) {
+    .top {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 480px) {
+    .top {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

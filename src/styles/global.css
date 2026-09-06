@@ -1,11 +1,13 @@
 :root {
+  /* 미남건축디자인 — 따뜻한 스톤 + 에스프레소 잉크 + 테라코타 팔레트 */
   --bg: #ffffff;
-  --bg-soft: #f7f8fa;
-  --fg: #1a1a2e;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --accent: #2563eb;
-  --accent-soft: #eff4ff;
+  --bg-soft: #f6f3ee;
+  --fg: #211d1a;
+  --muted: #726a5f;
+  --border: #e7e1d7;
+  --accent: #a35d3a;
+  --accent-soft: #f5ebe2;
+  --ink: #1c1917;
   --max: 860px;
 }
 

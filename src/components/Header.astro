@@ -1,20 +1,35 @@
 ---
-import { CATEGORIES } from '../consts';
+import { NAV, COMPANY } from '../consts';
 ---
 
 <header class="site-header">
-  <div class="brand-row">
-    <a href="/" class="brand">
-      <span class="brand-tag">돈이 되는 정보</span>
-      <span class="brand-name">Life<span class="brand-m">&nbsp;news</span></span>
+  <div class="bar">
+    <a href="/" class="brand" aria-label="미남건축디자인 홈">
+      <span class="brand-mark">MINAM</span>
+      <span class="brand-text">
+        <span class="brand-name">미남건축디자인</span>
+        <span class="brand-sub">실내건축 · 전기공사 전문시공</span>
+      </span>
+    </a>
+
+    <a href={`tel:${COMPANY.tel}`} class="cta">
+      <span class="cta-ic">☎</span><span class="cta-num">{COMPANY.tel}</span>
     </a>
   </div>
-  <nav class="nav">
+
+  <nav class="nav" aria-label="주요 메뉴">
     <ul>
       {
-        CATEGORIES.map((c) => (
+        NAV.map((item) => (
           <li>
-            <a href={`/category/${c.slug}/`}>{c.label}</a>
+            <a
+              href={item.href}
+              {...('external' in item && item.external
+                ? { target: '_blank', rel: 'noopener' }
+                : {})}
+            >
+              {item.label}
+            </a>
           </li>
         ))
       }
@@ -25,54 +40,90 @@ import { CATEGORIES } from '../consts';
 <style>
   .site-header {
     border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 30;
   }
-  /* 브랜드 — 가운데 정렬 */
-  .brand-row {
-    max-width: 860px;
+  .bar {
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 0.55rem 1.2rem 0.35rem;
-    text-align: center;
+    padding: 0.6rem 1.2rem 0.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
+  /* 브랜드 */
   .brand {
     display: inline-flex;
-    align-items: baseline;
-    gap: 0.4rem;
+    align-items: center;
+    gap: 0.6rem;
     color: var(--fg);
     text-decoration: none;
     white-space: nowrap;
   }
-  .brand-tag {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--muted);
+  .brand-mark {
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    font-size: 1.05rem;
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+    padding: 0.18rem 0.4rem 0.14rem 0.5rem;
+    border-radius: 6px;
+    line-height: 1;
+  }
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
   }
   .brand-name {
     font-weight: 800;
-    font-size: 1.75rem;
+    font-size: 1.1rem;
     letter-spacing: -0.02em;
   }
-  .brand-m {
-    color: var(--accent);
+  .brand-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
-  /* 카테고리 — 한 줄 가로 스크롤 */
+  /* 전화 CTA */
+  .cta {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+  }
+  .cta:hover {
+    opacity: 0.92;
+  }
+  /* 내비게이션 — 한 줄 가로 스크롤 */
   .nav {
+    max-width: 1080px;
+    margin: 0 auto;
     overflow-x: auto;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
   }
   .nav::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    display: none;
   }
   .nav ul {
     display: flex;
     flex-wrap: nowrap;
-    gap: 0.25rem;
+    gap: 0.1rem;
     list-style: none;
     margin: 0;
-    padding: 0.15rem 1.2rem 0.5rem;
+    padding: 0.1rem 1.2rem 0.5rem;
     width: max-content;
   }
   .nav li {
@@ -80,15 +131,22 @@ import { CATEGORIES } from '../consts';
   }
   .nav a {
     display: inline-block;
-    padding: 0.35rem 0.6rem;
+    padding: 0.4rem 0.7rem;
     border-radius: 6px;
-    color: var(--muted);
+    color: var(--fg);
     text-decoration: none;
     font-size: 0.95rem;
+    font-weight: 600;
     white-space: nowrap;
   }
   .nav a:hover {
     background: var(--accent-soft);
     color: var(--accent);
+  }
+
+  @media (max-width: 720px) {
+    .brand-sub {
+      display: none;
+    }
   }
 </style>

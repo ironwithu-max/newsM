@@ -1,129 +1,266 @@
 ---
-import { getCollection } from 'astro:content';
-import PlatformLayout from '../layouts/PlatformLayout.astro';
-import AdSlot from '../components/AdSlot.astro';
-import { categories } from '../platform/categories';
-import { products, countByCategory } from '../platform/products';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { COMPANY } from '../consts';
 
-const infoPosts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
-);
+const stats = [
+  { num: '12+', label: '건축·인테리어 경력(년)' },
+  { num: '350+', label: '주요 공사 프로젝트' },
+  { num: '650+', label: '누적 계약 건수' },
+  { num: '95%', label: '재의뢰·계약연장률' },
+  { num: '100%', label: '프로젝트 완수율' },
+];
 
-const slides = [
+const business = [
   {
-    title: '흩어진 보험 상품,<br /><span class="point">한 번에 비교</span>하고 상담받기',
-    sub: '자동차·실손·암·종신·여행자보험까지. 조건에 맞는 상품을 비교하고, 검증된 설계사와 무료로 상담하세요.',
+    icon: '🏛️',
+    tag: 'ARCHITECTURE',
+    title: '건축공사',
+    desc: '계획부터 시공, 감리에 이르기까지 건축공정의 전 과정을 책임집니다.',
+    href: '/business/architecture',
   },
   {
-    title: '복잡한 보험 찾기,<br /><span class="point">검색 한 번</span>으로 간단하게',
-    sub: "원하는 조건을 검색하면 맞는 보험을 빠르게 찾아드립니다. 예: '30대 직장인 실손보험 추천'.",
+    icon: '🛋️',
+    tag: 'INTERIOR',
+    title: '실내건축',
+    desc: '현대적 디자인과 기술로 심미성과 기능성이 조화를 이루는 공간을 설계·시공합니다.',
+    href: '/business/interior',
   },
   {
-    title: '비교는 무료로,<br /><span class="point">가입은 전문가</span>와 함께',
-    sub: '검증된 설계사가 조건을 확정하고 가입까지 도와드립니다. 상담 수수료는 없습니다.',
+    icon: '💡',
+    tag: 'ELECTRIC',
+    title: '전기공사',
+    desc: '전기배선·조명·설비 설치와 유지보수. 안정성과 효율성을 고려한 전기 시스템을 구축합니다.',
+    href: '/business/electric',
+  },
+  {
+    icon: '🔌',
+    tag: 'EV CHARGING',
+    title: '전기차 충전 인프라',
+    desc: '충전소 설계부터 설치·관리까지, 전기차 충전에 필요한 토털 솔루션을 제공합니다.',
+    href: '/business/ev-charging',
   },
 ];
 
-const steps = [
-  { icon: '🔍', title: '비교하기', desc: '보험 종류별로 여러 상품의 보험료와 보장을 한눈에 비교하세요.' },
-  { icon: '📝', title: '상담 신청', desc: '마음에 드는 상품에 무료 상담을 신청하면 정보가 접수됩니다.' },
-  { icon: '🤝', title: '전문가 연결', desc: '검증된 설계사가 연락드려 조건을 확정하고 가입을 도와드립니다.' },
+const strengths = [
+  {
+    no: '01',
+    title: '고객 맞춤형 디자인',
+    desc: '고객의 독특한 요구와 조건에 맞는 설계 솔루션을 제공하여, 기대를 충족시키는 동시에 새로운 디자인 가치를 제안합니다.',
+  },
+  {
+    no: '02',
+    title: '올인원 토탈 서비스',
+    desc: '기획부터 시공, 완공 후 서비스, 안전 및 품질 관리까지 필요한 모든 과정을 끝까지 책임집니다.',
+  },
+  {
+    no: '03',
+    title: '높은 신뢰성과 책임감',
+    desc: '설립 이후 진행된 모든 프로젝트를 중도 중단 없이 완수 — 프로젝트 완수율 100%를 지켜왔습니다.',
+  },
 ];
+
+const works = [
+  { img: '/images/works/jinhae-gs-living.webp', label: '진해 GS자이 아파트', tag: '주거공간' },
+  { img: '/images/works/rehouse-showroom.webp', label: '동부산 한샘리하우스 전시관', tag: '전시·쇼룸' },
+  { img: '/images/works/abyss-winebar.webp', label: '어비스 와인바', tag: '상업공간' },
+  { img: '/images/works/tongyeong-kitchen.webp', label: '통영 일성유수안 주방', tag: '주거공간' },
+  { img: '/images/works/obj-hairsalon.webp', label: '오브제이 헤어살롱', tag: '상업공간' },
+  { img: '/images/works/chicken-pub.webp', label: '청춘튀겨 치킨펍', tag: '상업공간' },
+  { img: '/images/works/sangnam-bath.webp', label: '상남 꿈에그린 욕실', tag: '욕실 리모델링' },
+  { img: '/images/works/unicity-academy.webp', label: '유니시티 학원', tag: '교육공간' },
+];
+
+const process = [
+  { no: 1, title: '기획', desc: '의뢰를 받아 공사의 목표와 큰 방향을 정합니다.' },
+  { no: 2, title: '현장조사', desc: '현장 상황을 파악하고 실측 작업을 수행합니다.' },
+  { no: 3, title: '계획설계', desc: '공간 계획과 디자인 주요 개념을 설정합니다.' },
+  { no: 4, title: '기본설계', desc: '설계 내용을 시각적으로 도식화해 전달합니다.' },
+  { no: 5, title: '실시설계', desc: '도면·서류와 세부 사항을 전문적으로 검토합니다.' },
+  { no: 6, title: '시공', desc: '품질이 계획대로 유지되는지 지속 확인합니다.' },
+  { no: 7, title: '준공', desc: '정리 작업과 사용 전 최종 안전점검을 진행합니다.' },
+];
+
+const values = [
+  {
+    en: 'Architecture for People',
+    ko: '사람을 위한 건축',
+    desc: '공간을 만드는 사람과 누리는 사람을 함께 생각합니다.',
+  },
+  {
+    en: 'Based on Teamwork',
+    ko: '팀워크에 기반한 건축',
+    desc: '각 분야 전문가가 긴밀히 협력해 창의적 결과물을 만듭니다.',
+  },
+  {
+    en: 'By Excellence',
+    ko: '탁월에 의한 건축',
+    desc: '깊이 있는 이해와 최신 기술, 혁신적 디자인으로 최고를 지향합니다.',
+  },
+];
+
+const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·매장)', '사무공간·오피스', '전시·홍보관', '전기공사·충전 인프라', '기타 문의'];
 ---
 
-<PlatformLayout
-  title="한 번에 비교하고 상담받는 보험 플랫폼"
-  description="자동차·실손·암·종신·여행자보험을 한 곳에서 비교하고, 무료 상담으로 나에게 맞는 보험을 찾으세요."
+<BaseLayout
+  title="공간을 넘어선 아름다움을 시공합니다"
+  description="㈜미남테크 미남건축디자인 — 실내건축·전기공사·전기차 충전 인프라 전문 설계시공. 김해·부산·경남 전역. 상담문의 1533-9820."
+  wide={true}
 >
-  <!-- 대형 히어로 -->
-  <section class="bighero">
-    <div class="plat bighero__inner">
-      <!-- AI 검색바 -->
-      <form class="searchbar" action="/search" method="get" role="search">
-        <input
-          type="text"
-          name="q"
-          placeholder="찾는 보험 검색 (예: 30대 직장인 실손보험 추천)"
-          aria-label="보험 상품 검색"
-        />
-        <button type="submit" class="searchbar__btn">✨ AI 검색</button>
-      </form>
-
-      <!-- 슬라이드 슬로건 -->
-      <div class="slides" id="slides">
+  <!-- ───────── HERO ───────── -->
+  <section class="hero">
+    <div class="hero__wrap">
+      <p class="hero__eyebrow">㈜미남테크 · 실내건축 · 전기공사 전문시공</p>
+      <h1 class="hero__title">
+        공간을 넘어선 <span class="hl">아름다움</span>을<br />시공합니다
+      </h1>
+      <p class="hero__sub">
+        단순한 건물, 그 이상의 공간 설계를 제안합니다. 심도 높은 디자인과 탁월한
+        기술력으로 심미성과 실용성을 겸비한 공간을 완성합니다.
+      </p>
+      <div class="hero__cta">
+        <a href="#contact" class="btn btn--primary">상담문의 하기</a>
+        <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+      </div>
+      <div class="hero__stats">
         {
-          slides.map((s, i) => (
-            <div class:list={['slide', i === 0 && 'on']} data-slide={i}>
-              <h1 class="slide__title" set:html={s.title} />
-              <p class="slide__sub">{s.sub}</p>
+          stats.map((s) => (
+            <div class="hstat">
+              <span class="hstat__num">{s.num}</span>
+              <span class="hstat__label">{s.label}</span>
             </div>
           ))
         }
       </div>
-
-      <div class="slidenav">
-        {slides.map((_, i) => (
-          <button
-            class:list={['slidedot', i === 0 && 'on']}
-            data-dot={i}
-            type="button"
-            aria-label={`슬라이드 ${i + 1}`}
-          />
-        ))}
-        <button class="slidepause" id="slidePause" type="button" aria-label="슬라이드 재생/정지">
-          ⏸
-        </button>
-      </div>
-
-      <!-- 하단 퀵바 -->
-      <div class="quickbar">
-        <span class="quickbar__label">🔎 어떤 상품을 찾으세요?</span>
-        <a class="quickbar__item" href="/products/#life">💚 생명보험상품</a>
-        <a class="quickbar__item" href="/products/#nonlife">📊 손해보험 상품</a>
-        <a class="quickbar__cta" href="/my/">🗂️ 내 보험 관리</a>
-      </div>
     </div>
   </section>
-  <div class="quickbar-spacer"></div>
 
-  <!-- Categories -->
-  <section id="categories" class="section">
-    <div class="plat">
-      <h2 class="section__title">어떤 보험을 찾으세요?</h2>
-      <p class="section__desc">보험 종류를 선택해 상품을 비교해 보세요.</p>
-      <div class="cat-grid">
+  <!-- ───────── 사업분야 ───────── -->
+  <section id="business" class="sec">
+    <div class="wrap">
+      <p class="sec__eyebrow">BUSINESS</p>
+      <h2 class="sec__title">주요 사업 분야</h2>
+      <p class="sec__desc">
+        건축부터 실내건축, 전기공사, 전기차 충전 인프라까지 — 공간에 필요한 모든
+        과정을 한 곳에서 책임집니다.
+      </p>
+      <div class="biz-grid">
         {
-          categories.map((c) => (
-            <a class="cat-card" href={`/compare/${c.slug}/`}>
-              <span class="cat-card__icon">{c.icon}</span>
-              <h3 class="cat-card__name">{c.name}</h3>
-              <p class="cat-card__tag">{c.tagline}</p>
-              <span class="cat-card__count">상품 {countByCategory(c.slug)}개 비교 →</span>
+          business.map((b) => (
+            <a class="biz" href={b.href}>
+              <span class="biz__icon">{b.icon}</span>
+              <span class="biz__tag">{b.tag}</span>
+              <h3 class="biz__title">{b.title}</h3>
+              <p class="biz__desc">{b.desc}</p>
+              <span class="biz__go">자세히 보기 →</span>
             </a>
           ))
         }
       </div>
-      <div class="plat" style="padding:0;margin-top:1.4rem">
-        <AdSlot label="홈 중간 광고" format="horizontal" height={100} />
+    </div>
+  </section>
+
+  <!-- ───────── 강점 ───────── -->
+  <section class="sec sec--soft">
+    <div class="wrap">
+      <p class="sec__eyebrow">WHY MINAM</p>
+      <h2 class="sec__title">수많은 기업이 미남을 선택하는 이유</h2>
+      <div class="str-grid">
+        {
+          strengths.map((s) => (
+            <article class="str">
+              <span class="str__no">{s.no}</span>
+              <h3 class="str__title">{s.title}</h3>
+              <p class="str__desc">{s.desc}</p>
+            </article>
+          ))
+        }
       </div>
     </div>
   </section>
 
-  <!-- How it works -->
-  <section id="how" class="section section--soft">
-    <div class="plat">
-      <h2 class="section__title">이용 방법</h2>
-      <p class="section__desc">3단계로 간단하게 나에게 맞는 보험을 찾으세요.</p>
-      <div class="steps">
+  <!-- ───────── 시공사례 ───────── -->
+  <section id="works" class="sec">
+    <div class="wrap">
+      <p class="sec__eyebrow">PORTFOLIO</p>
+      <h2 class="sec__title">주요 시공사례</h2>
+      <p class="sec__desc">
+        전시관·홍보관, 상업공간, 주거 리모델링, 관공서·학교까지 350건 이상의
+        프로젝트를 수행했습니다.
+      </p>
+      <div class="work-grid">
         {
-          steps.map((s, i) => (
-            <div class="step">
-              <div class="step__badge">
-                <span class="step__icon">{s.icon}</span>
-                <span class="step__no">STEP {i + 1}</span>
-              </div>
-              <h3 class="step__title">{s.title}</h3>
-              <p class="step__desc">{s.desc}</p>
+          works.map((w) => (
+            <figure class="work">
+              <img
+                class="work__img"
+                src={w.img}
+                alt={w.label}
+                width="1200"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption class="work__cap">
+                <span class="work__tag">{w.tag}</span>
+                <span class="work__label">{w.label}</span>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+      <p class="work-more">
+        더 많은 시공사례는
+        <a href={COMPANY.blog} target="_blank" rel="noopener">네이버 블로그</a>에서
+        확인하실 수 있습니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ───────── 프로세스 ───────── -->
+  <section class="sec sec--dark">
+    <div class="wrap">
+      <p class="sec__eyebrow sec__eyebrow--on">PROCESS</p>
+      <h2 class="sec__title sec__title--on">설계부터 준공까지, 7단계 프로세스</h2>
+      <ol class="proc">
+        {
+          process.map((p) => (
+            <li class="proc__item">
+              <span class="proc__no">{p.no}</span>
+              <span class="proc__title">{p.title}</span>
+              <span class="proc__desc">{p.desc}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ───────── 회사소개 ───────── -->
+  <section id="about" class="sec sec--soft">
+    <div class="wrap about">
+      <div class="about__intro">
+        <p class="sec__eyebrow">ABOUT</p>
+        <h2 class="sec__title">미남건축디자인의 가치</h2>
+        <p class="about__lead">
+          ㈜미남테크는 우수한 기술인력과 기본에 충실한 책임시공을 바탕으로,
+          건축물이 단순한 공간을 넘어 삶의 질을 높이고 도시의 아름다움에 기여하도록
+          노력합니다.
+        </p>
+        <dl class="about__facts">
+          <div><dt>회사명</dt><dd>{COMPANY.legalName} ({COMPANY.brandName})</dd></div>
+          <div><dt>대표이사</dt><dd>{COMPANY.ceo}</dd></div>
+          <div><dt>설립일</dt><dd>{COMPANY.founded}</dd></div>
+          <div><dt>사업분야</dt><dd>{COMPANY.fields}</dd></div>
+          <div><dt>보유면허</dt><dd>{COMPANY.licenses}</dd></div>
+          <div><dt>소재지</dt><dd>{COMPANY.hqAddress}</dd></div>
+        </dl>
+      </div>
+      <div class="about__values">
+        {
+          values.map((v) => (
+            <div class="val">
+              <span class="val__en">{v.en}</span>
+              <h3 class="val__ko">{v.ko}</h3>
+              <p class="val__desc">{v.desc}</p>
             </div>
           ))
         }
@@ -131,66 +268,583 @@ const steps = [
     </div>
   </section>
 
-  <!-- Info blog teaser -->
-  <section class="section">
-    <div class="plat">
-      <h2 class="section__title">알아두면 돈이 되는 보험·금융 정보</h2>
-      <p class="section__desc">
-        보험 가입 전 꼭 알아야 할 실속 정보를 <a href="/blog/">정보 블로그</a>에서 확인하세요.
-      </p>
-      <div class="info-banner">
-        <div>
-          <h3>{infoPosts[0]?.data.title ?? '보험·금융 가이드'}</h3>
-          <p>{infoPosts[0]?.data.description ?? '유용한 정보 글을 준비 중입니다.'}</p>
-        </div>
-        <a href="/blog/" class="btn btn--ghost btn--sm">정보 전체 보기 →</a>
+  <!-- ───────── 상담문의 ───────── -->
+  <section id="contact" class="sec">
+    <div class="wrap contact">
+      <div class="contact__info">
+        <p class="sec__eyebrow">CONTACT</p>
+        <h2 class="sec__title">공간을 계획 중이신가요?</h2>
+        <p class="contact__lead">
+          미남건축디자인이 기획부터 시공까지 함께합니다. 편하게 상담을 남겨
+          주세요. 확인 후 빠르게 연락드리겠습니다.
+        </p>
+        <ul class="contact__list">
+          <li><span>대표전화</span><a href={`tel:${COMPANY.tel}`}>{COMPANY.tel}</a></li>
+          <li><span>이메일</span><a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></li>
+          <li><span>본사</span><em>{COMPANY.hqAddress}</em></li>
+          <li><span>지사</span><em>{COMPANY.branchAddress}</em></li>
+          <li><span>블로그</span><a href={COMPANY.blog} target="_blank" rel="noopener">blog.naver.com/withudesign</a></li>
+        </ul>
       </div>
+
+      <form class="contact__form" id="consultForm">
+        <label class="fld">
+          <span>이름</span>
+          <input type="text" name="name" required placeholder="성함을 입력해 주세요" />
+        </label>
+        <label class="fld">
+          <span>연락처</span>
+          <input type="tel" name="phone" required placeholder="010-0000-0000" />
+        </label>
+        <label class="fld">
+          <span>공간 유형</span>
+          <select name="type">
+            {spaceTypes.map((t) => <option value={t}>{t}</option>)}
+          </select>
+        </label>
+        <label class="fld">
+          <span>문의 내용</span>
+          <textarea name="message" rows="4" placeholder="공간 위치·평형·희망 일정 등을 적어주시면 상담이 빨라집니다."></textarea>
+        </label>
+        <button type="submit" class="btn btn--primary btn--block">상담 신청하기</button>
+        <p class="contact__note" id="formNote">
+          * 신청 시 이메일 상담창이 열립니다. 급하신 경우 <a href={`tel:${COMPANY.tel}`}>{COMPANY.tel}</a>로 전화 주세요.
+        </p>
+      </form>
     </div>
   </section>
-</PlatformLayout>
+</BaseLayout>
 
-<script>
-  const slides = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
-  const dots = Array.from(document.querySelectorAll<HTMLButtonElement>('.slidedot'));
-  const pauseBtn = document.getElementById('slidePause') as HTMLButtonElement | null;
-  let idx = 0;
-  let timer: number | undefined;
-  let playing = true;
-
-  function show(n: number) {
-    idx = (n + slides.length) % slides.length;
-    slides.forEach((s, i) => s.classList.toggle('on', i === idx));
-    dots.forEach((d, i) => d.classList.toggle('on', i === idx));
+<script is:inline define:vars={{ email: COMPANY.email }}>
+  const form = document.getElementById('consultForm');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = new FormData(form);
+      const name = (f.get('name') || '').toString().trim();
+      const phone = (f.get('phone') || '').toString().trim();
+      const type = (f.get('type') || '').toString();
+      const message = (f.get('message') || '').toString().trim();
+      const subject = `[상담문의] ${name} 님 (${type})`;
+      const body =
+        `이름: ${name}\n연락처: ${phone}\n공간 유형: ${type}\n\n문의 내용:\n${message}\n`;
+      window.location.href =
+        `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const note = document.getElementById('formNote');
+      if (note) note.textContent = '상담 신청이 접수되었습니다. 이메일 창에서 전송을 완료해 주세요. 감사합니다.';
+    });
   }
-  function next() {
-    show(idx + 1);
-  }
-  function start() {
-    stop();
-    timer = window.setInterval(next, 4500);
-    playing = true;
-    if (pauseBtn) pauseBtn.textContent = '⏸';
-  }
-  function stop() {
-    if (timer) window.clearInterval(timer);
-    timer = undefined;
-  }
-
-  dots.forEach((d) =>
-    d.addEventListener('click', () => {
-      show(Number(d.dataset.dot));
-      if (playing) start();
-    })
-  );
-  pauseBtn?.addEventListener('click', () => {
-    if (playing) {
-      stop();
-      playing = false;
-      pauseBtn.textContent = '▶';
-    } else {
-      start();
-    }
-  });
-
-  if (slides.length > 1) start();
 </script>
+
+<style>
+  /* 공통 래퍼 */
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+  .sec {
+    padding: 4rem 0;
+  }
+  .sec--soft {
+    background: var(--bg-soft);
+  }
+  .sec__eyebrow {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+  }
+  .sec__eyebrow--on {
+    color: #d9a985;
+  }
+  .sec__title {
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    letter-spacing: -0.02em;
+  }
+  .sec__title--on {
+    color: #fff;
+  }
+  .sec__desc {
+    margin: 0 0 2rem;
+    color: var(--muted);
+    max-width: 44rem;
+    font-size: 1.02rem;
+  }
+  .sec__desc em {
+    font-style: normal;
+    color: var(--accent);
+    font-size: 0.92rem;
+  }
+
+  /* 버튼 */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.8rem 1.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .btn--primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn--primary:hover {
+    opacity: 0.92;
+  }
+  .btn--line {
+    background: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+  .btn--line:hover {
+    border-color: #fff;
+  }
+  .btn--block {
+    width: 100%;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(163, 93, 58, 0.28), transparent 60%),
+      var(--ink);
+    color: #ece5db;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  }
+  .hero__wrap {
+    position: relative;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 5rem 1.2rem 3.6rem;
+  }
+  .hero__eyebrow {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #d9a985;
+  }
+  .hero__title {
+    margin: 0;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    color: #fff;
+  }
+  .hero__title .hl {
+    color: var(--accent);
+    background: none;
+    padding: 0;
+  }
+  .hero__sub {
+    margin: 1.3rem 0 2rem;
+    max-width: 40rem;
+    font-size: 1.08rem;
+    color: #c9c0b4;
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+  .hero__stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .hstat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .hstat__num {
+    font-size: clamp(1.4rem, 3.6vw, 2rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .hstat__label {
+    font-size: 0.8rem;
+    color: #a89f92;
+    line-height: 1.35;
+  }
+
+  /* ── 사업분야 ── */
+  .biz-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .biz {
+    display: block;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem 1.3rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .biz__go {
+    display: inline-block;
+    margin-top: 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .biz:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(33, 29, 26, 0.08);
+    border-color: var(--accent);
+  }
+  .biz__icon {
+    font-size: 1.7rem;
+  }
+  .biz__tag {
+    display: block;
+    margin-top: 0.7rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .biz__title {
+    margin: 0.2rem 0 0.5rem;
+    font-size: 1.2rem;
+  }
+  .biz__desc {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.94rem;
+    line-height: 1.6;
+  }
+
+  /* ── 강점 ── */
+  .str-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+  .str {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.8rem 1.5rem;
+  }
+  .str__no {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+  .str__title {
+    margin: 0.5rem 0 0.6rem;
+    font-size: 1.25rem;
+  }
+  .str__desc {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.96rem;
+  }
+
+  /* ── 시공사례 ── */
+  .work-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .work {
+    margin: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .work__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 0;
+    background: var(--bg-soft);
+    transition: transform 0.4s ease;
+  }
+  .work:hover .work__img {
+    transform: scale(1.04);
+  }
+  .work {
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .work:hover {
+    border-color: var(--accent);
+    box-shadow: 0 12px 30px rgba(33, 29, 26, 0.1);
+  }
+  .work__cap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.8rem 0.9rem 1rem;
+  }
+  .work__tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .work__label {
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+  .work-more {
+    margin: 1.6rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  /* ── 프로세스 ── */
+  .sec--dark {
+    background: var(--ink);
+  }
+  .proc {
+    list-style: none;
+    margin: 1.4rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.8rem;
+    counter-reset: none;
+  }
+  .proc__item {
+    position: relative;
+    padding: 1.2rem 0.8rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .proc__no {
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .proc__title {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .proc__desc {
+    color: #a89f92;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  /* ── 회사소개 ── */
+  .about {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .about__lead {
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+  }
+  .about__facts {
+    margin: 0;
+    display: grid;
+    gap: 0;
+  }
+  .about__facts > div {
+    display: grid;
+    grid-template-columns: 6rem 1fr;
+    gap: 0.5rem;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.95rem;
+  }
+  .about__facts dt {
+    color: var(--muted);
+    font-weight: 700;
+    margin: 0;
+  }
+  .about__facts dd {
+    margin: 0;
+  }
+  .about__values {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .val {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.1rem 1.3rem;
+  }
+  .val__en {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  .val__ko {
+    margin: 0.2rem 0 0.4rem;
+    font-size: 1.15rem;
+  }
+  .val__desc {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  /* ── 상담문의 ── */
+  .contact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .contact__lead {
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+  }
+  .contact__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .contact__list li {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.96rem;
+  }
+  .contact__list li span {
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .contact__list a {
+    text-decoration: none;
+  }
+  .contact__list a:hover {
+    text-decoration: underline;
+  }
+  .contact__list em {
+    font-style: normal;
+  }
+  .contact__form {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.6rem;
+    box-shadow: 0 12px 34px rgba(33, 29, 26, 0.06);
+  }
+  .fld {
+    display: block;
+    margin-bottom: 0.9rem;
+  }
+  .fld span {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+  .fld input,
+  .fld select,
+  .fld textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 0.65rem 0.8rem;
+    font: inherit;
+    color: var(--fg);
+    background: var(--bg);
+  }
+  .fld textarea {
+    resize: vertical;
+  }
+  .fld input:focus,
+  .fld select:focus,
+  .fld textarea:focus {
+    outline: 2px solid var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .contact__note {
+    margin: 0.9rem 0 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .contact__note a {
+    color: var(--accent);
+  }
+
+  /* ── 반응형 ── */
+  @media (max-width: 900px) {
+    .biz-grid,
+    .work-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .str-grid {
+      grid-template-columns: 1fr;
+    }
+    .proc {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .hero__stats {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem 1rem;
+    }
+    .about,
+    .contact {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 520px) {
+    .sec {
+      padding: 3rem 0;
+    }
+    .biz-grid,
+    .work-grid {
+      grid-template-columns: 1fr;
+    }
+    .proc {
+      grid-template-columns: 1fr;
+    }
+    .hero__stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

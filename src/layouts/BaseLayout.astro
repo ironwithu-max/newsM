@@ -10,9 +10,11 @@ interface Props {
   description?: string;
   image?: string;
   article?: boolean;
+  /** true 이면 본문을 .container 로 감싸지 않고 전체폭으로 렌더링 (랜딩용) */
+  wide?: boolean;
 }
 
-const { title, description, image, article } = Astro.props;
+const { title, description, image, article, wide = false } = Astro.props;
 const adsenseEnabled = SITE.adsenseClient.startsWith('ca-pub-');
 ---
 
@@ -42,9 +44,17 @@ const adsenseEnabled = SITE.adsenseClient.startsWith('ca-pub-');
   </head>
   <body>
     <Header />
-    <main class="container">
-      <slot />
-    </main>
+    {
+      wide ? (
+        <main>
+          <slot />
+        </main>
+      ) : (
+        <main class="container">
+          <slot />
+        </main>
+      )
+    }
     <Footer />
   </body>
 </html>

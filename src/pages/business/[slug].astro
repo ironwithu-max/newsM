@@ -1,0 +1,564 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SERVICES, getService } from '../../services';
+import { COMPANY } from '../../consts';
+
+export function getStaticPaths() {
+  return SERVICES.map((s) => ({ params: { slug: s.slug } }));
+}
+
+const { slug } = Astro.params;
+const service = getService(slug!)!;
+const others = SERVICES.filter((s) => s.slug !== service.slug);
+---
+
+<BaseLayout
+  title={`${service.title} | 사업분야`}
+  description={`${service.title} — ${service.lead} ㈜미남테크 미남건축디자인.`}
+  wide={true}
+>
+  <!-- HERO -->
+  <section class="dhero">
+    <div class="dhero__wrap">
+      <p class="crumb"><a href="/">홈</a> <span>/</span> <a href="/#business">사업분야</a> <span>/</span> {service.title}</p>
+      <span class="dhero__tag">{service.icon} {service.tag}</span>
+      <h1 class="dhero__title">{service.title}</h1>
+      <p class="dhero__lead">{service.lead}</p>
+      <div class="dhero__cta">
+        <a href="/#contact" class="btn btn--primary">상담문의 하기</a>
+        <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 개요 + 업무 범위 -->
+  <section class="sec">
+    <div class="wrap over">
+      <div class="over__intro">
+        <p class="eyebrow">OVERVIEW</p>
+        <h2 class="stitle">사업 개요</h2>
+        <p class="over__text">{service.intro}</p>
+      </div>
+      <aside class="over__scope">
+        <h3>업무 범위</h3>
+        <ul>
+          {service.scope.map((s) => <li>{s}</li>)}
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 강점 -->
+  <section class="sec sec--soft">
+    <div class="wrap">
+      <p class="eyebrow">STRENGTHS</p>
+      <h2 class="stitle">{service.title}의 강점</h2>
+      <div class="feat-grid">
+        {
+          service.features.map((f, i) => (
+            <article class="feat">
+              <span class="feat__no">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+            </article>
+          ))
+        }
+      </div>
+      {service.note && <p class="note">{service.note}</p>}
+    </div>
+  </section>
+
+  <!-- 시공사례 (있을 때만) -->
+  {
+    service.works.length > 0 && (
+      <section class="sec">
+        <div class="wrap">
+          <p class="eyebrow">PORTFOLIO</p>
+          <h2 class="stitle">관련 시공사례</h2>
+          <div class="dwork-grid">
+            {service.works.map((w) => (
+              <figure class="dwork">
+                <img src={w.img} alt={w.label} width="1200" height="900" loading="lazy" />
+                <figcaption>
+                  <span class="dwork__tag">{w.tag}</span>
+                  <span class="dwork__label">{w.label}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <p class="more">
+            더 많은 사례는 <a href={COMPANY.blog} target="_blank" rel="noopener">네이버 블로그</a>에서 확인하세요.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- 진행 절차 -->
+  <section class="sec sec--soft">
+    <div class="wrap">
+      <p class="eyebrow">PROCESS</p>
+      <h2 class="stitle">진행 절차</h2>
+      <ol class="dproc">
+        {
+          service.steps.map((st, i) => (
+            <li>
+              <span class="dproc__no">{i + 1}</span>
+              <span class="dproc__t">{st.title}</span>
+              <span class="dproc__d">{st.desc}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="sec">
+    <div class="wrap wrap--narrow">
+      <p class="eyebrow">FAQ</p>
+      <h2 class="stitle">자주 묻는 질문</h2>
+      <div class="faq">
+        {
+          service.faq.map((f) => (
+            <details class="faq__item">
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA 배너 -->
+  <section class="cta-band">
+    <div class="wrap cta-band__in">
+      <div>
+        <h2>{service.title} 상담이 필요하신가요?</h2>
+        <p>미남건축디자인이 기획부터 시공까지 함께합니다. 편하게 문의해 주세요.</p>
+      </div>
+      <div class="cta-band__btns">
+        <a href="/#contact" class="btn btn--primary">상담문의</a>
+        <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 다른 사업분야 -->
+  <section class="sec">
+    <div class="wrap">
+      <p class="eyebrow">MORE</p>
+      <h2 class="stitle">다른 사업분야</h2>
+      <div class="other-grid">
+        {
+          others.map((o) => (
+            <a class="other" href={`/business/${o.slug}`}>
+              <span class="other__icon">{o.icon}</span>
+              <span class="other__title">{o.title}</span>
+              <span class="other__go">자세히 보기 →</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+  .wrap--narrow {
+    max-width: 760px;
+  }
+  .sec {
+    padding: 3.6rem 0;
+  }
+  .sec--soft {
+    background: var(--bg-soft);
+  }
+  .eyebrow {
+    margin: 0 0 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+  }
+  .stitle {
+    margin: 0 0 1.5rem;
+    font-size: clamp(1.4rem, 3.6vw, 1.9rem);
+    letter-spacing: -0.02em;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.75rem 1.4rem;
+    font-weight: 700;
+    font-size: 0.98rem;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    transition: opacity 0.15s, border-color 0.15s;
+  }
+  .btn--primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn--primary:hover {
+    opacity: 0.92;
+  }
+  .btn--line {
+    background: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+  .btn--line:hover {
+    border-color: #fff;
+  }
+
+  /* HERO */
+  .dhero {
+    background:
+      radial-gradient(900px 400px at 85% -20%, rgba(163, 93, 58, 0.3), transparent 60%),
+      var(--ink);
+    color: #ece5db;
+  }
+  .dhero__wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2.6rem 1.2rem 3rem;
+  }
+  .crumb {
+    font-size: 0.85rem;
+    color: #a89f92;
+    margin: 0 0 1.2rem;
+  }
+  .crumb a {
+    color: #cdc3b4;
+    text-decoration: none;
+  }
+  .crumb a:hover {
+    color: #fff;
+  }
+  .crumb span {
+    margin: 0 0.35rem;
+    opacity: 0.5;
+  }
+  .dhero__tag {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #d9a985;
+    letter-spacing: 0.06em;
+  }
+  .dhero__title {
+    margin: 0.5rem 0 0.6rem;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    color: #fff;
+    letter-spacing: -0.03em;
+  }
+  .dhero__lead {
+    margin: 0 0 1.6rem;
+    font-size: 1.08rem;
+    color: #c9c0b4;
+    max-width: 40rem;
+  }
+  .dhero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  /* 개요 */
+  .over {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2.4rem;
+    align-items: start;
+  }
+  .over__text {
+    color: var(--muted);
+    margin: 0;
+    font-size: 1.03rem;
+    line-height: 1.85;
+  }
+  .over__scope {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+  }
+  .over__scope h3 {
+    margin: 0 0 0.8rem;
+    font-size: 1.05rem;
+  }
+  .over__scope ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .over__scope li {
+    position: relative;
+    padding: 0.5rem 0 0.5rem 1.3rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.96rem;
+  }
+  .over__scope li:first-child {
+    border-top: none;
+  }
+  .over__scope li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.95rem;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* 강점 */
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.1rem;
+  }
+  .feat {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem 1.4rem;
+  }
+  .feat__no {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .feat h3 {
+    margin: 0.4rem 0 0.5rem;
+    font-size: 1.15rem;
+  }
+  .feat p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .note {
+    margin: 1.4rem 0 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-soft);
+    border-radius: 10px;
+    color: var(--accent);
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  /* 시공사례 */
+  .dwork-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .dwork {
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .dwork img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 0;
+  }
+  .dwork figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.7rem 0.85rem 0.9rem;
+  }
+  .dwork__tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .dwork__label {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+  .more {
+    margin: 1.4rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  /* 진행 절차 */
+  .dproc {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.9rem;
+  }
+  .dproc li {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.3rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .dproc__no {
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dproc__t {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .dproc__d {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* FAQ */
+  .faq__item {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 0.7rem;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .faq__item summary {
+    cursor: pointer;
+    padding: 1rem 1.2rem;
+    font-weight: 700;
+    font-size: 1rem;
+    list-style: none;
+    position: relative;
+    padding-right: 2.4rem;
+  }
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__item summary::after {
+    content: '+';
+    position: absolute;
+    right: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+  .faq__item[open] summary::after {
+    content: '−';
+  }
+  .faq__item p {
+    margin: 0;
+    padding: 0 1.2rem 1.1rem;
+    color: var(--muted);
+    font-size: 0.97rem;
+  }
+
+  /* CTA 배너 */
+  .cta-band {
+    background: var(--ink);
+    color: #fff;
+  }
+  .cta-band__in {
+    padding: 2.4rem 1.2rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+  }
+  .cta-band__in h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1.4rem;
+  }
+  .cta-band__in p {
+    margin: 0;
+    color: #c9c0b4;
+    font-size: 0.98rem;
+  }
+  .cta-band__btns {
+    display: flex;
+    gap: 0.7rem;
+  }
+
+  /* 다른 사업분야 */
+  .other-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  .other {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1.3rem 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+    text-decoration: none;
+    color: var(--fg);
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .other:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .other__icon {
+    font-size: 1.6rem;
+  }
+  .other__title {
+    font-weight: 800;
+    font-size: 1.1rem;
+  }
+  .other__go {
+    color: var(--accent);
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 860px) {
+    .over,
+    .feat-grid,
+    .dwork-grid,
+    .dproc,
+    .other-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .over {
+      grid-template-columns: 1fr;
+    }
+    .feat-grid,
+    .other-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .dwork-grid,
+    .dproc {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
