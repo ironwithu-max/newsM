@@ -1,0 +1,262 @@
+---
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COMPANY } from '../../consts';
+import { getWork, getNeighbors, coverOf, PUBLIC_CACHE } from '../../lib/works';
+
+const work = await getWork(Astro.params.id || '');
+if (!work) return Astro.redirect('/works', 302);
+
+const { prev, next } = await getNeighbors(work);
+const paragraphs = work.content
+  .split(/\n{2,}/)
+  .map((p) => p.trim())
+  .filter(Boolean);
+const summary =
+  work.content.replace(/\s+/g, ' ').trim().slice(0, 140) ||
+  `${work.title} — ${COMPANY.brandName} 시공사례`;
+const dateLabel = work.work_date ? work.work_date.replace(/-/g, '.') : '';
+
+Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
+---
+
+<BaseLayout title={`${work.title} | 시공사례`} description={summary} image={coverOf(work)} wide={true}>
+  <article class="wd">
+    <header class="wd__head">
+      <p class="crumb"><a href="/">홈</a> <span>/</span> <a href="/works">시공사례</a></p>
+      {work.tag && <a href={`/works?tag=${encodeURIComponent(work.tag)}`} class="wd__tag">{work.tag}</a>}
+      <h1 class="wd__title">{work.title}</h1>
+      {
+        (work.location || dateLabel) && (
+          <ul class="wd__meta">
+            {work.location && <li><span>현장</span>{work.location}</li>}
+            {dateLabel && <li><span>준공</span>{dateLabel}</li>}
+            <li><span>사진</span>{work.images.length}장</li>
+          </ul>
+        )
+      }
+    </header>
+
+    <div class="wd__body">
+      <figure class="wd__cover">
+        <img src={work.images[0].url} alt={work.title} />
+      </figure>
+
+      {paragraphs.length > 0 && <div class="wd__text">{paragraphs.map((p) => <p>{p}</p>)}</div>}
+
+      {
+        work.images.length > 1 && (
+          <div class="wd__photos">
+            {work.images.slice(1).map((img, i) => (
+              <a href={img.url} target="_blank" rel="noopener" class="wd__photo">
+                <img src={img.url} alt={`${work.title} 사진 ${i + 2}`} loading="lazy" />
+              </a>
+            ))}
+          </div>
+        )
+      }
+
+      <nav class="wd__nav">
+        {prev ? (
+          <a href={`/works/${prev.id}`} class="wd__nav-item"><span>‹ 이전 사례</span>{prev.title}</a>
+        ) : <span />}
+        <a href="/works" class="wd__list">목록</a>
+        {next ? (
+          <a href={`/works/${next.id}`} class="wd__nav-item wd__nav-item--next"><span>다음 사례 ›</span>{next.title}</a>
+        ) : <span />}
+      </nav>
+
+      <div class="cta">
+        <p>이 사례와 비슷한 공간을 계획 중이신가요?</p>
+        <div class="cta__btns">
+          <a href="/#contact" class="btn btn--primary">상담문의 하기</a>
+          <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .wd__head {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 2.4rem 1.2rem 1.4rem;
+  }
+  .crumb {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0 0 1rem;
+  }
+  .crumb a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .crumb a:hover {
+    color: var(--accent);
+  }
+  .crumb span {
+    margin: 0 0.35rem;
+    opacity: 0.5;
+  }
+  .wd__tag {
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    text-decoration: none;
+  }
+  .wd__title {
+    margin: 0.6rem 0 0.8rem;
+    font-size: clamp(1.6rem, 4.4vw, 2.3rem);
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+  }
+  .wd__meta {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .wd__meta span {
+    font-weight: 700;
+    color: var(--fg);
+    margin-right: 0.4rem;
+  }
+  .wd__body {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 1.2rem 3.5rem;
+  }
+  .wd__cover {
+    margin: 0 0 1.8rem;
+  }
+  .wd__cover img {
+    display: block;
+    width: 100%;
+    border-radius: 16px;
+    background: var(--bg-soft);
+  }
+  .wd__text {
+    margin: 0 0 2rem;
+    font-size: 1.04rem;
+  }
+  .wd__text p {
+    margin: 0 0 1.1rem;
+    white-space: pre-line;
+  }
+  .wd__photos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+  .wd__photo img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 12px;
+    background: var(--bg-soft);
+  }
+  .wd__nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    margin: 2.6rem 0 0;
+    padding: 1.2rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .wd__nav-item {
+    display: flex;
+    flex-direction: column;
+    color: var(--fg);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    min-width: 0;
+  }
+  .wd__nav-item span {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .wd__nav-item:hover {
+    color: var(--accent);
+  }
+  .wd__nav-item--next {
+    text-align: right;
+  }
+  .wd__list {
+    padding: 0.5rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+  .wd__list:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .cta {
+    margin-top: 2.4rem;
+    padding: 1.6rem 1.8rem;
+    border-radius: 16px;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .cta p {
+    margin: 0;
+    font-weight: 600;
+  }
+  .cta__btns {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+  }
+  .btn--primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn--line {
+    border-color: var(--border);
+    color: var(--fg);
+    background: #fff;
+  }
+  @media (max-width: 560px) {
+    .wd__photos {
+      grid-template-columns: 1fr;
+    }
+    .wd__nav {
+      grid-template-columns: 1fr 1fr;
+    }
+    .wd__list {
+      display: none;
+    }
+  }
+</style>

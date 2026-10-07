@@ -1,6 +1,9 @@
 ---
+export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
+import WorkCard from '../components/WorkCard.astro';
 import { COMPANY } from '../consts';
+import { listWorks, toCard, FALLBACK_WORKS, PUBLIC_CACHE } from '../lib/works';
 
 const stats = [
   { num: '12+', label: '건축·인테리어 경력(년)' },
@@ -59,16 +62,10 @@ const strengths = [
   },
 ];
 
-const works = [
-  { img: '/images/works/apt-living-kitchen.webp', label: '아파트 거실·주방 리모델링', tag: '주거공간' },
-  { img: '/images/works/rehouse-showroom.webp', label: '한샘리하우스 전시관', tag: '전시·쇼룸' },
-  { img: '/images/works/winebar.webp', label: '어비스 와인바', tag: '상업공간' },
-  { img: '/images/works/white-kitchen.webp', label: '화이트 주방 리모델링', tag: '주거공간' },
-  { img: '/images/works/kitchen-showroom.webp', label: '주방 쇼룸 시공', tag: '전시·쇼룸' },
-  { img: '/images/works/chicken-pub.webp', label: '청춘튀겨 치킨펍', tag: '상업공간' },
-  { img: '/images/works/bathroom.webp', label: '욕실 리모델링', tag: '욕실 리모델링' },
-  { img: '/images/works/entrance.webp', label: '현관·중문 시공', tag: '주거공간' },
-];
+// 시공사례: 관리자 게시판(/admin/works) 등록 글 중 앞 8건. 없으면 기본 8장.
+const { items: latestWorks } = await listWorks({ perPage: 8 });
+const works = latestWorks.length ? latestWorks.map(toCard) : FALLBACK_WORKS;
+Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
 
 const process = [
   { no: 1, title: '기획', desc: '의뢰를 받아 공사의 목표와 큰 방향을 정합니다.' },
@@ -188,29 +185,10 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
         프로젝트를 수행했습니다.
       </p>
       <div class="work-grid">
-        {
-          works.map((w) => (
-            <figure class="work">
-              <img
-                class="work__img"
-                src={w.img}
-                alt={w.label}
-                width="1200"
-                height="900"
-                loading="lazy"
-              />
-              <figcaption class="work__cap">
-                <span class="work__tag">{w.tag}</span>
-                <span class="work__label">{w.label}</span>
-              </figcaption>
-            </figure>
-          ))
-        }
+        {works.map((w, i) => <WorkCard work={w} featured={i === 0 && works.length % 4 === 1} />)}
       </div>
       <p class="work-more">
-        더 많은 시공사례는
-        <a href={COMPANY.blog} target="_blank" rel="noopener">네이버 블로그</a>에서
-        확인하실 수 있습니다.
+        <a href="/works" class="work-more__btn">시공사례 전체 보기 →</a>
       </p>
     </div>
   </section>
@@ -335,6 +313,7 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
     });
   }
 </script>
+
 
 <style>
   /* 공통 래퍼 */
@@ -576,51 +555,27 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
   }
-  .work {
-    margin: 0;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    background: var(--bg);
-  }
-  .work__img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    border-radius: 0;
-    background: var(--bg-soft);
-    transition: transform 0.4s ease;
-  }
-  .work:hover .work__img {
-    transform: scale(1.04);
-  }
-  .work {
-    transition: box-shadow 0.15s, border-color 0.15s;
-  }
-  .work:hover {
-    border-color: var(--accent);
-    box-shadow: 0 12px 30px rgba(33, 29, 26, 0.1);
-  }
-  .work__cap {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.8rem 0.9rem 1rem;
-  }
-  .work__tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--accent);
-  }
-  .work__label {
-    font-size: 0.98rem;
-    font-weight: 700;
+  /* 사진 수가 4로 나눠 떨어지지 않을 때(5·9장) 첫 장을 크게 — 빈칸 없이 채움 */
+  .work-grid :global(.work--feature) {
+    grid-column: span 2;
+    grid-row: span 2;
   }
   .work-more {
-    margin: 1.6rem 0 0;
-    color: var(--muted);
-    font-size: 0.95rem;
+    margin: 1.8rem 0 0;
+    text-align: center;
+  }
+  .work-more__btn {
+    display: inline-block;
+    padding: 0.75rem 1.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .work-more__btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   /* ── 프로세스 ── */
@@ -817,6 +772,9 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
     .work-grid {
       grid-template-columns: repeat(2, 1fr);
     }
+    .work-grid :global(.work--feature) {
+      grid-row: auto;
+    }
     .str-grid {
       grid-template-columns: 1fr;
     }
@@ -839,6 +797,9 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
     .biz-grid,
     .work-grid {
       grid-template-columns: 1fr;
+    }
+    .work-grid :global(.work--feature) {
+      grid-column: auto;
     }
     .proc {
       grid-template-columns: 1fr;

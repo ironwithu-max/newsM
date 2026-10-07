@@ -44,6 +44,7 @@ const year = new Date().getFullYear();
         <a href="/about/">소개</a>
         <a href="/#contact">상담문의</a>
         <a href="/privacy/">개인정보처리방침</a>
+        <a href="/admin/works" rel="nofollow" class="admin-link">🔒 관리자</a>
       </nav>
     </div>
   </div>
@@ -156,6 +157,9 @@ const year = new Date().getFullYear();
   }
   .bottom nav a:hover {
     color: var(--accent);
+  }
+  .bottom nav .admin-link {
+    opacity: 0.7;
   }
 
   @media (max-width: 820px) {

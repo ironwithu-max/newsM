@@ -1,0 +1,255 @@
+---
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import { COMPANY } from '../../consts';
+import { listWorks, toCard, FALLBACK_WORKS, WORK_TAGS, PUBLIC_CACHE, getServiceClient } from '../../lib/works';
+
+const PER_PAGE = 12;
+const tag = Astro.url.searchParams.get('tag') || '';
+const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') || '1', 10) || 1);
+
+const { items, total } = await listWorks({ tag: tag || undefined, page, perPage: PER_PAGE });
+const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+// 실제 사용 중인 분류만 필터에 노출 (+ 기본 목록 순서 유지)
+let tags: string[] = [];
+const sb = getServiceClient();
+if (sb) {
+  const { data } = await sb.from('works').select('tag').eq('published', true);
+  const used = new Set((data || []).map((r: { tag: string }) => r.tag).filter(Boolean));
+  tags = [...WORK_TAGS.filter((t) => used.has(t)), ...[...used].filter((t) => !WORK_TAGS.includes(t))];
+}
+
+const useFallback = total === 0 && !tag;
+const cards = useFallback ? FALLBACK_WORKS : items.map(toCard);
+
+const qs = (p: { tag?: string; page?: number }) => {
+  const s = new URLSearchParams();
+  if (p.tag) s.set('tag', p.tag);
+  if (p.page && p.page > 1) s.set('page', String(p.page));
+  const q = s.toString();
+  return q ? `/works?${q}` : '/works';
+};
+
+Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
+---
+
+<BaseLayout
+  title={tag ? `${tag} 시공사례` : '시공사례'}
+  description={`${COMPANY.brandName}(${COMPANY.legalName})의 실내건축·리모델링·전기공사 시공사례 모음. 주거공간, 상업공간, 전시·쇼룸 등 실제 현장 사진과 시공 내용을 확인하세요.`}
+  wide={true}
+>
+  <section class="whero">
+    <div class="whero__wrap">
+      <p class="crumb"><a href="/">홈</a> <span>/</span> 시공사례</p>
+      <p class="whero__eyebrow">PORTFOLIO</p>
+      <h1 class="whero__title">시공사례</h1>
+      <p class="whero__lead">미남건축디자인이 직접 설계·시공한 현장을 소개합니다.</p>
+    </div>
+  </section>
+
+  <section class="wsec">
+    <div class="wwrap">
+      {
+        tags.length > 0 && (
+          <nav class="filter" aria-label="분류">
+            <a href={qs({})} class:list={['chip', { 'is-on': !tag }]}>전체</a>
+            {tags.map((t) => (
+              <a href={qs({ tag: t })} class:list={['chip', { 'is-on': tag === t }]}>{t}</a>
+            ))}
+          </nav>
+        )
+      }
+
+      {
+        cards.length === 0 ? (
+          <p class="empty">해당 분류의 시공사례가 아직 없습니다. <a href="/works">전체 보기</a></p>
+        ) : (
+          <div class="grid">
+            {cards.map((w) => <WorkCard work={w} />)}
+          </div>
+        )
+      }
+
+      {
+        pages > 1 && (
+          <nav class="pager" aria-label="페이지">
+            {page > 1 && <a href={qs({ tag, page: page - 1 })}>‹ 이전</a>}
+            {Array.from({ length: pages }, (_, i) => i + 1).map((n) =>
+              n === page ? <span class="is-on">{n}</span> : <a href={qs({ tag, page: n })}>{n}</a>
+            )}
+            {page < pages && <a href={qs({ tag, page: page + 1 })}>다음 ›</a>}
+          </nav>
+        )
+      }
+
+      <div class="cta">
+        <p>원하시는 공간이 있으신가요? 현장 상황에 맞춰 설계부터 시공까지 제안해 드립니다.</p>
+        <div class="cta__btns">
+          <a href="/#contact" class="btn btn--primary">상담문의 하기</a>
+          <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .whero {
+    background:
+      radial-gradient(900px 400px at 85% -20%, rgba(163, 93, 58, 0.3), transparent 60%),
+      var(--ink);
+    color: #ece5db;
+  }
+  .whero__wrap,
+  .wwrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2.6rem 1.2rem 3rem;
+  }
+  .crumb {
+    font-size: 0.85rem;
+    color: #a89f92;
+    margin: 0 0 1.2rem;
+  }
+  .crumb a {
+    color: #cdc3b4;
+    text-decoration: none;
+  }
+  .crumb a:hover {
+    color: #fff;
+  }
+  .crumb span {
+    margin: 0 0.35rem;
+    opacity: 0.5;
+  }
+  .whero__eyebrow {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #d9a985;
+    letter-spacing: 0.12em;
+  }
+  .whero__title {
+    margin: 0.4rem 0 0.5rem;
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .whero__lead {
+    margin: 0;
+    color: #cdc3b4;
+  }
+  .filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.6rem;
+  }
+  .chip {
+    padding: 0.4rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .chip.is-on {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.1rem;
+  }
+  .empty {
+    color: var(--muted);
+    padding: 2rem 0;
+  }
+  .pager {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 2.2rem 0 0;
+  }
+  .pager a,
+  .pager span {
+    min-width: 2.3rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    text-align: center;
+    text-decoration: none;
+    color: var(--fg);
+    font-size: 0.9rem;
+  }
+  .pager a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .pager .is-on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 700;
+  }
+  .cta {
+    margin-top: 3rem;
+    padding: 1.6rem 1.8rem;
+    border-radius: 16px;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .cta p {
+    margin: 0;
+    font-weight: 600;
+  }
+  .cta__btns {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+  }
+  .btn--primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn--line {
+    border-color: var(--border);
+    color: var(--fg);
+    background: #fff;
+  }
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

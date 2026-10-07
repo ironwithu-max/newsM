@@ -1,0 +1,14 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import WorkForm from '../../../components/admin/WorkForm.astro';
+import { getServiceClient } from '../../../lib/works';
+
+const configured = !!getServiceClient();
+---
+
+<AdminLayout title="새 시공사례">
+  <h1>새 시공사례 등록</h1>
+  {!configured && <p class="warn">Supabase 환경변수가 설정되지 않아 저장할 수 없습니다.</p>}
+  <WorkForm />
+</AdminLayout>

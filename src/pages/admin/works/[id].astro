@@ -1,0 +1,20 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import WorkForm from '../../../components/admin/WorkForm.astro';
+import { getWork } from '../../../lib/works';
+
+const work = await getWork(Astro.params.id || '', true);
+if (!work) return new Response('게시글을 찾을 수 없습니다.', { status: 404 });
+---
+
+<AdminLayout title="시공사례 수정">
+  <div class="head">
+    <h1>시공사례 수정</h1>
+    <form action="/api/admin/works-delete" method="post" onsubmit="return confirm('이 게시글과 사진을 모두 삭제할까요? 되돌릴 수 없습니다.');">
+      <input type="hidden" name="id" value={work.id} />
+      <button class="btn btn--sm btn--danger" type="submit">게시글 삭제</button>
+    </form>
+  </div>
+  <WorkForm work={work} />
+</AdminLayout>

@@ -1,0 +1,106 @@
+---
+// 시공사례 카드 — 메인 시공사례 섹션 + /works 게시판 공용
+import type { WorkCardData } from '../lib/works';
+
+interface Props {
+  work: WorkCardData;
+  /** 큰 대표 카드 (부모 그리드에서 칸 병합은 부모가 지정) */
+  featured?: boolean;
+}
+const { work: w, featured = false } = Astro.props;
+const Tag = w.href ? 'a' : 'figure';
+---
+
+<Tag class:list={['work', { 'work--feature': featured }]} {...(w.href ? { href: w.href } : {})}>
+  <div class="work__media">
+    <img class="work__img" src={w.img} alt={w.title} width="1200" height="900" loading="lazy" />
+    {w.count && w.count > 1 && <span class="work__count">+{w.count - 1}</span>}
+  </div>
+  <div class="work__cap">
+    {w.tag && <span class="work__tag">{w.tag}</span>}
+    <span class="work__label">{w.title}</span>
+    {w.location && <span class="work__loc">{w.location}</span>}
+  </div>
+</Tag>
+
+<style>
+  .work {
+    display: block;
+    margin: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    text-decoration: none;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .work:hover {
+    border-color: var(--accent);
+    box-shadow: 0 12px 30px rgba(33, 29, 26, 0.1);
+  }
+  .work__media {
+    position: relative;
+    overflow: hidden;
+  }
+  .work--feature {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .work--feature .work__media {
+    flex: 1;
+    min-height: 0;
+  }
+  .work--feature .work__img {
+    height: 100%;
+    aspect-ratio: auto;
+    min-height: 260px;
+  }
+  .work--feature .work__label {
+    font-size: 1.15rem;
+  }
+  .work__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 0;
+    background: var(--bg-soft);
+    transition: transform 0.4s ease;
+  }
+  .work:hover .work__img {
+    transform: scale(1.04);
+  }
+  .work__count {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    background: rgba(28, 25, 23, 0.72);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+  }
+  .work__cap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.8rem 0.9rem 1rem;
+  }
+  .work__tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .work__label {
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+  .work__loc {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+</style>

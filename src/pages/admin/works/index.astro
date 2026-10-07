@@ -1,0 +1,86 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getServiceClient, listWorks, coverOf } from '../../../lib/works';
+
+const configured = !!getServiceClient();
+const { items, total } = await listWorks({ perPage: 500, includeHidden: true });
+const saved = Astro.url.searchParams.has('saved');
+const fmt = (s: string) => s.slice(0, 10);
+---
+
+<AdminLayout title="시공사례 목록">
+  <div class="head">
+    <h1>시공사례 게시판 <span class="muted">총 {total}건</span></h1>
+    <a href="/admin/works/new" class="btn">＋ 새 글 쓰기</a>
+  </div>
+
+  {
+    !configured && (
+      <p class="warn">
+        Supabase 환경변수(<code>SUPABASE_URL</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code>)가 설정되지 않았습니다.
+        배포(Vercel) 환경변수를 확인해 주세요.
+      </p>
+    )
+  }
+  {saved && <p class="ok">저장되었습니다. 사이트에는 1분 이내에 반영됩니다.</p>}
+
+  <div class="card list">
+    {
+      items.length === 0 ? (
+        <p class="muted">등록된 시공사례가 없습니다. "새 글 쓰기"로 첫 글을 등록해 주세요.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th class="c-img">사진</th>
+              <th>제목</th>
+              <th class="c-hide">분류</th>
+              <th class="c-hide">정렬</th>
+              <th class="c-hide">등록일</th>
+              <th>상태</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((w) => (
+              <tr>
+                <td class="c-img">{coverOf(w) && <img src={coverOf(w)} alt="" loading="lazy" />}</td>
+                <td>
+                  <a href={`/admin/works/${w.id}`} class="t">{w.title}</a>
+                  <span class="muted sub">사진 {w.images.length}장{w.location && ` · ${w.location}`}</span>
+                </td>
+                <td class="c-hide">{w.tag}</td>
+                <td class="c-hide">{w.sort}</td>
+                <td class="c-hide">{fmt(w.created_at)}</td>
+                <td>{w.published ? <span class="st on">공개</span> : <span class="st">숨김</span>}</td>
+                <td class="c-act">
+                  <a href={`/admin/works/${w.id}`} class="btn btn--sm btn--line">수정</a>
+                  {w.published && <a href={`/works/${w.id}`} target="_blank" rel="noopener" class="btn btn--sm btn--line">보기</a>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    }
+  </div>
+</AdminLayout>
+
+<style>
+  .list { padding: 0.4rem 0.6rem; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th { text-align: left; font-size: 0.8rem; color: var(--muted); font-weight: 700; padding: 0.7rem 0.6rem; border-bottom: 1px solid var(--border); }
+  td { padding: 0.6rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  .c-img { width: 92px; }
+  .c-img img { width: 80px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; display: block; }
+  .t { color: var(--fg); font-weight: 700; text-decoration: none; }
+  .t:hover { color: var(--accent); }
+  .sub { display: block; font-size: 0.8rem; }
+  .st { font-size: 0.78rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; background: #eee; color: #777; white-space: nowrap; }
+  .st.on { background: var(--accent-soft); color: var(--accent); }
+  .c-act { text-align: right; white-space: nowrap; }
+  .c-act .btn + .btn { margin-left: 0.3rem; }
+  @media (max-width: 640px) { .c-hide { display: none; } }
+</style>

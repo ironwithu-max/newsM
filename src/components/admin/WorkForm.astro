@@ -1,0 +1,284 @@
+---
+// 관리자 시공사례 글쓰기/수정 폼 — 사진은 선택 즉시 브라우저에서 압축 후 1장씩 업로드
+import { WORK_TAGS, type Work } from '../../lib/works';
+
+interface Props {
+  work?: Work | null;
+}
+const { work } = Astro.props;
+const w = work ?? null;
+---
+
+<form class="card wf" id="workForm" data-images={JSON.stringify(w?.images ?? [])}>
+  {w && <input type="hidden" name="id" value={w.id} />}
+
+  <div class="wf__row">
+    <div class="wf__wide">
+      <label for="title">제목 *</label>
+      <input id="title" name="title" required maxlength="200" value={w?.title ?? ''} placeholder="예: 김해 율하 아파트 32평 전체 리모델링" />
+    </div>
+  </div>
+
+  <div class="wf__row">
+    <div>
+      <label for="tag">분류</label>
+      <input id="tag" name="tag" list="tagList" maxlength="40" value={w?.tag ?? ''} placeholder="예: 주거공간" />
+      <datalist id="tagList">{WORK_TAGS.map((t) => <option value={t} />)}</datalist>
+    </div>
+    <div>
+      <label for="location">현장 위치</label>
+      <input id="location" name="location" maxlength="100" value={w?.location ?? ''} placeholder="예: 경남 김해시" />
+    </div>
+    <div>
+      <label for="work_date">시공 완료일</label>
+      <input id="work_date" name="work_date" type="date" value={w?.work_date ?? ''} />
+    </div>
+  </div>
+
+  <div class="wf__row">
+    <div class="wf__wide">
+      <label for="content">본문</label>
+      <textarea id="content" name="content" maxlength="20000" placeholder="시공 범위, 사용 자재, 고객 요청사항, 공사 기간 등을 적어 주세요. 줄바꿈은 그대로 표시됩니다.">{w?.content ?? ''}</textarea>
+    </div>
+  </div>
+
+  <div class="wf__photos">
+    <div class="wf__photos-head">
+      <label>사진 * <span class="muted">— 첫 번째 사진이 대표사진(목록·메인 노출)입니다</span></label>
+      <label class="btn btn--line btn--sm wf__pick">
+        ＋ 사진 추가
+        <input type="file" id="picker" accept="image/jpeg,image/png,image/webp" multiple hidden />
+      </label>
+    </div>
+    <p class="muted wf__hint">여러 장을 한 번에 선택할 수 있어요. 큰 사진은 자동으로 줄여서(가로 최대 1920px) 올립니다.</p>
+    <ul class="wf__list" id="imgList"></ul>
+  </div>
+
+  <div class="wf__row wf__row--foot">
+    <div>
+      <label for="sort">정렬 순서 <span class="muted">(작을수록 앞, 같으면 최신순)</span></label>
+      <input id="sort" name="sort" type="number" value={w?.sort ?? 0} />
+    </div>
+    <div class="wf__check">
+      <label><input type="checkbox" name="published" checked={w ? w.published : true} /> 사이트에 공개</label>
+    </div>
+  </div>
+
+  <p class="warn" id="formError" hidden></p>
+
+  <div class="wf__actions">
+    <a href="/admin/works" class="btn btn--line">목록으로</a>
+    <button class="btn" type="submit" id="saveBtn">{w ? '수정 저장' : '등록하기'}</button>
+  </div>
+</form>
+
+<script>
+  type Img = { url: string; path: string | null; pending?: boolean; key: string };
+
+  const form = document.getElementById('workForm') as HTMLFormElement;
+  const list = document.getElementById('imgList') as HTMLUListElement;
+  const picker = document.getElementById('picker') as HTMLInputElement;
+  const errBox = document.getElementById('formError') as HTMLParagraphElement;
+  const saveBtn = document.getElementById('saveBtn') as HTMLButtonElement;
+
+  let seq = 0;
+  let images: Img[] = JSON.parse(form.dataset.images || '[]').map((i: Img) => ({ ...i, key: 'k' + seq++ }));
+
+  function showError(msg: string) {
+    errBox.textContent = msg;
+    errBox.hidden = !msg;
+  }
+
+  function render() {
+    list.innerHTML = '';
+    images.forEach((img, i) => {
+      const li = document.createElement('li');
+      li.className = 'wf__item' + (img.pending ? ' is-pending' : '');
+      const pic = document.createElement('img');
+      pic.src = img.url;
+      pic.alt = '';
+      li.appendChild(pic);
+      if (i === 0) {
+        const badge = document.createElement('span');
+        badge.className = 'wf__badge';
+        badge.textContent = '대표';
+        li.appendChild(badge);
+      }
+      if (img.pending) {
+        const p = document.createElement('span');
+        p.className = 'wf__progress';
+        p.textContent = '업로드 중…';
+        li.appendChild(p);
+      } else {
+        const bar = document.createElement('div');
+        bar.className = 'wf__tools';
+        const mk = (label: string, title: string, fn: () => void, disabled = false) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = label;
+          b.title = title;
+          b.disabled = disabled;
+          b.addEventListener('click', fn);
+          bar.appendChild(b);
+        };
+        mk('◀', '앞으로', () => move(i, -1), i === 0);
+        mk('▶', '뒤로', () => move(i, 1), i === images.length - 1);
+        mk('대표', '대표사진으로', () => move(i, -i), i === 0);
+        mk('✕', '빼기', () => {
+          images.splice(i, 1);
+          render();
+        });
+        li.appendChild(bar);
+      }
+      list.appendChild(li);
+    });
+    if (images.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'wf__empty';
+      li.textContent = '아직 사진이 없습니다. "＋ 사진 추가"를 눌러 주세요.';
+      list.appendChild(li);
+    }
+  }
+
+  function move(i: number, d: number) {
+    const [it] = images.splice(i, 1);
+    images.splice(i + d, 0, it);
+    render();
+  }
+
+  /** 가로·세로 최대 1920px, webp(미지원 시 jpeg)로 재인코딩 */
+  async function compress(file: File): Promise<Blob> {
+    const MAX = 1920;
+    let bmp: ImageBitmap;
+    try {
+      bmp = await createImageBitmap(file, { imageOrientation: 'from-image' } as ImageBitmapOptions);
+    } catch {
+      return file;
+    }
+    const scale = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close();
+    const toBlob = (type: string) =>
+      new Promise<Blob | null>((res) => canvas.toBlob(res, type, 0.82));
+    let blob = await toBlob('image/webp');
+    if (!blob || blob.type !== 'image/webp') blob = await toBlob('image/jpeg');
+    return blob && blob.size < file.size ? blob : file;
+  }
+
+  async function upload(file: File, slot: Img) {
+    try {
+      const blob = await compress(file);
+      const ext = blob.type === 'image/webp' ? 'webp' : blob.type === 'image/png' ? 'png' : 'jpg';
+      const fd = new FormData();
+      fd.append('image', blob, `photo.${ext}`);
+      const res = await fetch('/api/admin/works-upload', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({ error: `업로드 실패 (${res.status})` }));
+      if (!res.ok) throw new Error(data.error || `업로드 실패 (${res.status})`);
+      URL.revokeObjectURL(slot.url);
+      Object.assign(slot, { url: data.url, path: data.path, pending: false });
+    } catch (e) {
+      images = images.filter((x) => x !== slot);
+      showError(`${file.name}: ${(e as Error).message}`);
+    }
+    render();
+  }
+
+  picker.addEventListener('change', async () => {
+    showError('');
+    const files = Array.from(picker.files || []);
+    picker.value = '';
+    const slots = files.map((f) => {
+      const slot: Img = { url: URL.createObjectURL(f), path: null, pending: true, key: 'k' + seq++ };
+      images.push(slot);
+      return { f, slot };
+    });
+    render();
+    // 3장씩 병렬 업로드
+    for (let i = 0; i < slots.length; i += 3) {
+      await Promise.all(slots.slice(i, i + 3).map(({ f, slot }) => upload(f, slot)));
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showError('');
+    if (images.some((i) => i.pending)) return showError('사진 업로드가 끝난 뒤 저장해 주세요.');
+    if (images.length === 0) return showError('사진을 1장 이상 등록하세요.');
+    const fd = new FormData(form);
+    fd.set('published', (form.elements.namedItem('published') as HTMLInputElement).checked ? 'true' : 'false');
+    fd.set('images', JSON.stringify(images.map(({ url, path }) => ({ url, path }))));
+    saveBtn.disabled = true;
+    try {
+      const res = await fetch('/api/admin/works-save', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({ error: `저장 실패 (${res.status})` }));
+      if (!res.ok) throw new Error(data.error || `저장 실패 (${res.status})`);
+      location.href = '/admin/works?saved=1';
+    } catch (err) {
+      showError((err as Error).message);
+      saveBtn.disabled = false;
+    }
+  });
+
+  render();
+</script>
+
+<style>
+  .wf__row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .wf__wide { grid-column: 1 / -1; }
+  .wf__row--foot { grid-template-columns: 220px 1fr; align-items: end; }
+  .wf__check label { display: flex; align-items: center; gap: 0.45rem; font-size: 0.95rem; margin: 0 0 0.6rem; }
+  .wf__check input { width: auto; }
+  .wf__photos { margin: 0.4rem 0 1.2rem; }
+  .wf__photos-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .wf__photos-head > label:first-child { margin: 0; }
+  .wf__pick { margin: 0; cursor: pointer; }
+  .wf__hint { margin: 0.3rem 0 0.8rem; font-size: 0.82rem; }
+  .wf__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.7rem;
+  }
+  .wf__item {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .wf__item img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .wf__item.is-pending img { opacity: 0.45; }
+  .wf__badge {
+    position: absolute; top: 6px; left: 6px;
+    background: var(--accent); color: #fff; font-size: 0.72rem; font-weight: 800;
+    padding: 0.1rem 0.45rem; border-radius: 6px;
+  }
+  .wf__progress {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700;
+  }
+  .wf__tools { display: flex; border-top: 1px solid var(--border); }
+  .wf__tools button {
+    flex: 1; border: 0; background: #fff; padding: 0.35rem 0; cursor: pointer;
+    font: inherit; font-size: 0.78rem; color: var(--fg);
+  }
+  .wf__tools button + button { border-left: 1px solid var(--border); }
+  .wf__tools button:hover:not(:disabled) { background: var(--accent-soft); }
+  .wf__tools button:disabled { color: #c9c1b5; cursor: default; }
+  .wf__tools button:last-child { color: var(--danger); }
+  .wf__empty { grid-column: 1 / -1; color: var(--muted); padding: 1.2rem 0; font-size: 0.92rem; }
+  .wf__actions { display: flex; justify-content: flex-end; gap: 0.6rem; }
+  @media (max-width: 640px) {
+    .wf__row, .wf__row--foot { grid-template-columns: 1fr; }
+  }
+</style>
