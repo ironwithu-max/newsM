@@ -45,10 +45,8 @@ const w = work ?? null;
   <div class="wf__photos">
     <div class="wf__photos-head">
       <label>사진 * <span class="muted">— 첫 번째 사진이 대표사진(목록·메인 노출)입니다</span></label>
-      <label class="btn btn--line btn--sm wf__pick">
-        ＋ 사진 추가
-        <input type="file" id="picker" accept="image/jpeg,image/png,image/webp" multiple hidden />
-      </label>
+      <button type="button" class="btn btn--line btn--sm wf__pick" id="pickBtn">＋ 사진 추가</button>
+      <input type="file" id="picker" accept="image/jpeg,image/png,image/webp" multiple hidden />
     </div>
     <p class="muted wf__hint">여러 장을 한 번에 선택할 수 있어요. 큰 사진은 자동으로 줄여서(가로 최대 1920px) 올립니다.</p>
     <ul class="wf__list" id="imgList"></ul>
@@ -185,6 +183,8 @@ const w = work ?? null;
     }
     render();
   }
+
+  document.getElementById('pickBtn')!.addEventListener('click', () => picker.click());
 
   picker.addEventListener('change', async () => {
     showError('');

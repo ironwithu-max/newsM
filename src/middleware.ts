@@ -4,8 +4,25 @@
 // ─────────────────────────────────────────────────────────────
 import { defineMiddleware } from 'astro:middleware';
 
+/** 같은 사이트에서 보낸 요청인지 (Origin/Referer 호스트 === 요청 Host) */
+function isSameOrigin(request: Request): boolean {
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+  const src = request.headers.get('origin') || request.headers.get('referer') || '';
+  if (!host || !src) return false;
+  try {
+    return new URL(src).host === host;
+  } catch {
+    return false;
+  }
+}
+
 export const onRequest = defineMiddleware((context, next) => {
   const { pathname } = context.url;
+
+  // 쓰기 요청 CSRF 차단 (astro.config 의 checkOrigin 대신)
+  if (context.request.method !== 'GET' && context.request.method !== 'HEAD' && !isSameOrigin(context.request)) {
+    return new Response('다른 사이트에서 보낸 요청은 처리할 수 없습니다.', { status: 403 });
+  }
   const isProtected =
     pathname.startsWith('/admin') || pathname.startsWith('/api/admin');
   if (!isProtected) return next();
