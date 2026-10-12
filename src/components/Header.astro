@@ -12,29 +12,30 @@ import { NAV, COMPANY } from '../consts';
       </span>
     </a>
 
+    <nav class="nav" aria-label="주요 메뉴">
+      <ul>
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                {...('external' in item && item.external
+                  ? { target: '_blank', rel: 'noopener' }
+                  : {})}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
     <a href={`tel:${COMPANY.tel}`} class="cta">
       <span class="cta-ic">☎</span><span class="cta-num">{COMPANY.tel}</span>
     </a>
   </div>
 
-  <nav class="nav" aria-label="주요 메뉴">
-    <ul>
-      {
-        NAV.map((item) => (
-          <li>
-            <a
-              href={item.href}
-              {...('external' in item && item.external
-                ? { target: '_blank', rel: 'noopener' }
-                : {})}
-            >
-              {item.label}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </nav>
 </header>
 
 <style>
@@ -51,9 +52,26 @@ import { NAV, COMPANY } from '../consts';
     margin: 0 auto;
     padding: 0.6rem 1.2rem 0.35rem;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0 1rem;
+  }
+  /* PC: 로고 · 메뉴 · 전화 한 줄 */
+  @media (min-width: 900px) {
+    .bar {
+      padding: 0.55rem 1.2rem;
+    }
+    .nav {
+      order: 0;
+      flex: 1;
+      width: auto;
+      margin: 0;
+    }
+    .nav ul {
+      margin: 0 auto;
+      padding: 0;
+    }
   }
   /* 브랜드 */
   .brand {
@@ -109,8 +127,9 @@ import { NAV, COMPANY } from '../consts';
   }
   /* 내비게이션 — 한 줄 가로 스크롤 */
   .nav {
-    max-width: 1080px;
-    margin: 0 auto;
+    order: 3;
+    width: calc(100% + 2.4rem);
+    margin: 0.3rem -1.2rem 0;
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -147,6 +166,26 @@ import { NAV, COMPANY } from '../consts';
   @media (max-width: 720px) {
     .brand-sub {
       display: none;
+    }
+  }
+  /* 휴대폰: 로고와 전화 버튼이 한 줄에 들어가도록 */
+  @media (max-width: 480px) {
+    .bar {
+      column-gap: 0.5rem;
+    }
+    .brand {
+      gap: 0.45rem;
+    }
+    .brand-mark {
+      letter-spacing: 0.12em;
+      font-size: 0.95rem;
+    }
+    .brand-name {
+      font-size: 1rem;
+    }
+    .cta {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.88rem;
     }
   }
 </style>

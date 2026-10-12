@@ -65,6 +65,8 @@ const strengths = [
 // 시공사례: 관리자 게시판(/admin/works) 등록 글 중 앞 8건. 없으면 기본 8장.
 const { items: latestWorks } = await listWorks({ perPage: 8 });
 const works = latestWorks.length ? latestWorks.map(toCard) : FALLBACK_WORKS;
+// 첫 화면 슬라이드: 게시판 대표사진 (최대 8장, 5초마다 전환)
+const slides = works.slice(0, 8);
 Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
 
 const process = [
@@ -104,20 +106,63 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
   wide={true}
 >
   <!-- ───────── HERO ───────── -->
-  <section class="hero">
+  <section class="hero" data-hero>
     <div class="hero__wrap">
-      <p class="hero__eyebrow">㈜미남테크 · 실내건축 · 전기공사 전문시공</p>
-      <h1 class="hero__title">
-        공간을 넘어선 <span class="hl">아름다움</span>을<br />시공합니다
-      </h1>
-      <p class="hero__sub">
-        단순한 건물, 그 이상의 공간 설계를 제안합니다. 심도 높은 디자인과 탁월한
-        기술력으로 심미성과 실용성을 겸비한 공간을 완성합니다.
-      </p>
-      <div class="hero__cta">
-        <a href="#contact" class="btn btn--primary">상담문의 하기</a>
-        <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+      <div class="hero__text">
+        <p class="hero__eyebrow">㈜미남테크 · 실내건축 · 전기공사 전문시공</p>
+        <h1 class="hero__title">
+          공간을 넘어선 <span class="hl">아름다움</span>을<br />시공합니다
+        </h1>
+        <p class="hero__sub">
+          단순한 건물, 그 이상의 공간 설계를 제안합니다. 심도 높은 디자인과 탁월한
+          기술력으로 심미성과 실용성을 겸비한 공간을 완성합니다.
+        </p>
+        <div class="hero__cta">
+          <a href="#contact" class="btn btn--primary">상담문의 하기</a>
+          <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+        </div>
       </div>
+
+      {/* 시공사례 대표사진 슬라이드 (5초마다 전환) */}
+      {
+        slides.length > 0 && (
+          <div class="hero__media">
+            <div class="hero__slides" aria-hidden="true">
+              {slides.map((w, i) => (
+                <img
+                  class:list={['hero__slide', { 'is-on': i === 0 }]}
+                  {...(i === 0 ? { src: w.img, fetchpriority: 'high' } : { 'data-src': w.img })}
+                  alt=""
+                  decoding="async"
+                />
+              ))}
+            </div>
+            <div class="hero__now">
+              <div class="hero__caps">
+                {slides.map((w, i) => {
+                  const Cap = w.href ? 'a' : 'span';
+                  return (
+                    <Cap class:list={['hero__cap', { 'is-on': i === 0 }]} {...(w.href ? { href: w.href } : {})}>
+                      <span class="hero__cap-tag">시공사례{w.tag && ` · ${w.tag}`}</span>
+                      <span class="hero__cap-title">{w.title}{w.href && ' →'}</span>
+                    </Cap>
+                  );
+                })}
+              </div>
+              {slides.length > 1 && (
+                <div class="hero__dots">
+                  {slides.map((w, i) => (
+                    <button type="button" class:list={['hero__dot', { 'is-on': i === 0 }]} aria-label={`${i + 1}번째 사진: ${w.title}`} data-i={i} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      }
+    </div>
+
+    <div class="hero__stats-bar">
       <div class="hero__stats">
         {
           stats.map((s) => (
@@ -130,16 +175,19 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
       </div>
     </div>
   </section>
-
   <!-- ───────── 사업분야 ───────── -->
-  <section id="business" class="sec">
+  <section id="business" class="sec sec--first">
     <div class="wrap">
-      <p class="sec__eyebrow">BUSINESS</p>
-      <h2 class="sec__title">주요 사업 분야</h2>
-      <p class="sec__desc">
-        건축부터 실내건축, 전기공사, 전기차 충전 인프라까지 — 공간에 필요한 모든
-        과정을 한 곳에서 책임집니다.
-      </p>
+      <div class="sec__head">
+        <div>
+          <p class="sec__eyebrow">BUSINESS</p>
+          <h2 class="sec__title">주요 사업 분야</h2>
+        </div>
+        <p class="sec__head-desc">
+          건축부터 실내건축, 전기공사, 전기차 충전 인프라까지 — 공간에 필요한 모든
+          과정을 한 곳에서 책임집니다.
+        </p>
+      </div>
       <div class="biz-grid">
         {
           business.map((b) => (
@@ -153,6 +201,28 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
           ))
         }
       </div>
+    </div>
+  </section>
+
+  <!-- ───────── 시공사례 ───────── -->
+  <section id="works" class="sec sec--second">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <p class="sec__eyebrow">PORTFOLIO</p>
+          <h2 class="sec__title">주요 시공사례</h2>
+        </div>
+        <p class="sec__head-desc">
+        전시관·홍보관, 상업공간, 주거 리모델링, 관공서·학교까지 350건 이상의
+        프로젝트를 수행했습니다.
+        </p>
+      </div>
+      <div class="work-grid">
+        {works.map((w, i) => <WorkCard work={w} featured={i === 0 && works.length % 4 === 1} />)}
+      </div>
+      <p class="work-more">
+        <a href="/works" class="work-more__btn">시공사례 전체 보기 →</a>
+      </p>
     </div>
   </section>
 
@@ -172,24 +242,6 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
           ))
         }
       </div>
-    </div>
-  </section>
-
-  <!-- ───────── 시공사례 ───────── -->
-  <section id="works" class="sec">
-    <div class="wrap">
-      <p class="sec__eyebrow">PORTFOLIO</p>
-      <h2 class="sec__title">주요 시공사례</h2>
-      <p class="sec__desc">
-        전시관·홍보관, 상업공간, 주거 리모델링, 관공서·학교까지 350건 이상의
-        프로젝트를 수행했습니다.
-      </p>
-      <div class="work-grid">
-        {works.map((w, i) => <WorkCard work={w} featured={i === 0 && works.length % 4 === 1} />)}
-      </div>
-      <p class="work-more">
-        <a href="/works" class="work-more__btn">시공사례 전체 보기 →</a>
-      </p>
     </div>
   </section>
 
@@ -315,6 +367,60 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
 </script>
 
 
+<script>
+  // 첫 화면 사진 슬라이드 — 5초마다 다음 사진, 점 클릭·좌우 밀기로 이동
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  const imgs = hero ? Array.from(hero.querySelectorAll<HTMLImageElement>('.hero__slide')) : [];
+  if (hero && imgs.length > 1) {
+    const caps = Array.from(hero.querySelectorAll<HTMLElement>('.hero__cap'));
+    const dots = Array.from(hero.querySelectorAll<HTMLButtonElement>('.hero__dot'));
+    const load = (i: number) => {
+      const img = imgs[i];
+      if (img && img.dataset.src) {
+        img.src = img.dataset.src;
+        delete img.dataset.src;
+      }
+    };
+    let cur = 0;
+    let timer = 0;
+    const show = (n: number) => {
+      const next = (n + imgs.length) % imgs.length;
+      load(next);
+      load((next + 1) % imgs.length); // 다음 사진 미리 받기
+      [imgs, caps, dots].forEach((list) =>
+        list.forEach((el, i) => el.classList.toggle('is-on', i === next))
+      );
+      cur = next;
+    };
+    const start = () => {
+      clearInterval(timer);
+      timer = window.setInterval(() => show(cur + 1), 5000);
+    };
+    load(1);
+    dots.forEach((d) =>
+      d.addEventListener('click', () => {
+        show(Number(d.dataset.i));
+        start();
+      })
+    );
+    let x0: number | null = null;
+    hero.addEventListener('touchstart', (e) => (x0 = e.touches[0].clientX), { passive: true });
+    hero.addEventListener('touchend', (e) => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 50) {
+        show(cur + (dx < 0 ? 1 : -1));
+        start();
+      }
+    });
+    document.addEventListener('visibilitychange', () =>
+      document.hidden ? clearInterval(timer) : start()
+    );
+    start();
+  }
+</script>
+
 <style>
   /* 공통 래퍼 */
   .wrap {
@@ -414,19 +520,23 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
     position: relative;
     max-width: 1080px;
     margin: 0 auto;
-    padding: 5rem 1.2rem 3.6rem;
+    padding: 1.3rem 1.2rem 1.1rem;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 2.2rem;
+    align-items: center;
   }
   .hero__eyebrow {
-    margin: 0 0 1rem;
-    font-size: 0.9rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.82rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     color: #d9a985;
   }
   .hero__title {
     margin: 0;
-    font-size: clamp(2rem, 6vw, 3.4rem);
-    line-height: 1.2;
+    font-size: clamp(1.7rem, 3.2vw, 2.2rem);
+    line-height: 1.22;
     letter-spacing: -0.03em;
     color: #fff;
   }
@@ -436,41 +546,230 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
     padding: 0;
   }
   .hero__sub {
-    margin: 1.3rem 0 2rem;
-    max-width: 40rem;
-    font-size: 1.08rem;
+    margin: 0.7rem 0 1.1rem;
+    font-size: 0.95rem;
+    line-height: 1.65;
     color: #c9c0b4;
   }
   .hero__cta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.7rem;
+    gap: 0.6rem;
+  }
+
+  /* 시공사례 대표사진 슬라이드 */
+  .hero__media {
+    position: relative;
+    aspect-ratio: 2 / 1;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #2a2420;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  }
+  .hero__slides {
+    position: absolute;
+    inset: 0;
+  }
+  .hero__slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    border-radius: 0;
+    opacity: 0;
+    transform: scale(1.02);
+    transition: opacity 1.2s ease, transform 6s linear;
+  }
+  .hero__slide.is-on {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  .hero__slides::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(20, 17, 15, 0.82) 0%, rgba(20, 17, 15, 0.2) 38%, transparent 60%);
+  }
+  .hero__now {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+  .hero__caps {
+    display: grid;
+    min-width: 0;
+  }
+  .hero__cap {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    color: #fff;
+    text-decoration: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease;
+  }
+  .hero__cap.is-on {
+    opacity: 1;
+    visibility: visible;
+  }
+  .hero__cap-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #e3b48f;
+    letter-spacing: 0.04em;
+  }
+  .hero__cap-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  a.hero__cap:hover .hero__cap-title {
+    color: #f0c9a8;
+  }
+  .hero__dots {
+    display: flex;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    padding-bottom: 0.25rem;
+  }
+  .hero__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition: width 0.3s, background 0.3s;
+  }
+  .hero__dot.is-on {
+    width: 22px;
+    background: var(--accent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__slide,
+    .hero__slide.is-on {
+      transform: none;
+      transition: opacity 0.6s ease;
+    }
+  }
+
+  /* 실적 숫자 — 한 줄 띠 */
+  .hero__stats-bar {
+    position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.18);
   }
   .hero__stats {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0.5rem 1.2rem;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 1rem;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
   }
   .hstat {
     display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
+    align-items: baseline;
+    gap: 0.5rem;
   }
   .hstat__num {
-    font-size: clamp(1.4rem, 3.6vw, 2rem);
+    font-size: 1.2rem;
     font-weight: 800;
     color: #fff;
     letter-spacing: -0.02em;
   }
   .hstat__label {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: #a89f92;
     line-height: 1.35;
   }
 
+  /* 첫 화면에 사업분야 + 시공사례 첫 줄까지 보이도록 촘촘하게 */
+  .sec--first {
+    padding: 1.1rem 0 0.5rem;
+  }
+  .sec--second {
+    padding-top: 0.9rem;
+  }
+  /* 사업분야 카드: 아이콘·제목 한 줄 + 설명 2줄 */
+  .sec--first .biz {
+    padding: 0.9rem 1rem 1rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.7rem;
+    align-items: center;
+  }
+  .sec--first .biz__icon {
+    grid-row: span 2;
+    font-size: 1.5rem;
+  }
+  .sec--first .biz__tag {
+    margin: 0;
+  }
+  .sec--first .biz__title {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  .sec--first .biz__title::after {
+    content: ' →';
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .sec--first .biz__desc {
+    grid-column: 1 / -1;
+    margin-top: 0.4rem;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .sec--first .biz__go {
+    display: none;
+  }
+  /* 메인 시공사례 카드는 조금 납작하게 */
+  .work-grid :global(.work__img) {
+    aspect-ratio: 16 / 10;
+  }
+  .work-grid :global(.work__cap) {
+    padding: 0.6rem 0.85rem 0.75rem;
+  }
+  .sec__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.4rem 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+  }
+  .sec__head .sec__title {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+  }
+  .sec__head .sec__eyebrow {
+    margin-bottom: 0.25rem;
+  }
+  .sec__head-desc {
+    margin: 0;
+    max-width: 30rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
   /* ── 사업분야 ── */
   .biz-grid {
     display: grid;
@@ -781,9 +1080,13 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
     .proc {
       grid-template-columns: repeat(2, 1fr);
     }
+    .hero__wrap {
+      grid-template-columns: 1fr;
+      gap: 1.4rem;
+    }
     .hero__stats {
       grid-template-columns: repeat(3, 1fr);
-      gap: 1.2rem 1rem;
+      gap: 0.6rem 1rem;
     }
     .about,
     .contact {
@@ -805,7 +1108,27 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
       grid-template-columns: 1fr;
     }
     .hero__stats {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+    .hstat {
+      flex-direction: column;
+      gap: 0;
+    }
+    .hstat__num {
+      font-size: 1.2rem;
+    }
+    .hstat__label {
+      font-size: 0.72rem;
+    }
+    .hero__wrap {
+      padding: 1.6rem 1.2rem 1.4rem;
+    }
+    .hero__sub {
+      font-size: 0.94rem;
+    }
+    .sec--first {
+      padding-top: 1.6rem;
     }
   }
 </style>
