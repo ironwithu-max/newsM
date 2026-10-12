@@ -1,0 +1,196 @@
+---
+// 상담요청 폼 — 메인 상담문의 섹션 + /consult 상담게시판 공용
+//  접수 → /api/consult (DB 저장, 관리자 답글은 상담게시판에서 비밀번호로 확인)
+import { COMPANY } from '../consts';
+
+const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·매장)', '사무공간·오피스', '전시·홍보관', '전기공사·충전 인프라', '기타 문의'];
+---
+
+<form class="cf" data-consult-form novalidate>
+  <div class="cf__row">
+    <label class="fld">
+      <span>이름 *</span>
+      <input type="text" name="name" required maxlength="50" autocomplete="name" placeholder="성함을 입력해 주세요" />
+    </label>
+    <label class="fld">
+      <span>연락처 *</span>
+      <input type="tel" name="phone" required maxlength="20" autocomplete="tel" placeholder="010-0000-0000" />
+    </label>
+  </div>
+  <label class="fld">
+    <span>공간 유형</span>
+    <select name="type">
+      {spaceTypes.map((t) => <option value={t}>{t}</option>)}
+    </select>
+  </label>
+  <label class="fld">
+    <span>문의 내용</span>
+    <textarea name="message" rows="4" maxlength="3000" placeholder="공간 위치·평형·희망 일정 등을 적어주시면 상담이 빨라집니다."></textarea>
+  </label>
+  <label class="fld">
+    <span>비밀번호 * <em>— 상담게시판에서 답글을 확인할 때 사용 (4자 이상)</em></span>
+    <input type="password" name="password" required minlength="4" maxlength="20" autocomplete="new-password" placeholder="숫자 4자리 이상" />
+  </label>
+  <!-- 스팸 방지용 (사람에게는 보이지 않음) -->
+  <input type="text" name="website" tabindex="-1" autocomplete="off" class="cf__hp" aria-hidden="true" />
+
+  <label class="cf__agree">
+    <input type="checkbox" name="agree" required />
+    <span>
+      상담을 위한 개인정보(이름·연락처·문의 내용) 수집·이용에 동의합니다.
+      <a href="/privacy/" target="_blank" rel="noopener">자세히</a>
+    </span>
+  </label>
+
+  <button type="submit" class="cf__btn">상담 신청하기</button>
+  <p class="cf__note" data-note>
+    * 접수 후 담당자가 확인해 연락드립니다. 급하신 경우 <a href={`tel:${COMPANY.tel}`}>{COMPANY.tel}</a>로 전화 주세요.
+  </p>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-consult-form]').forEach((form) => {
+    const note = form.querySelector<HTMLElement>('[data-note]')!;
+    const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const say = (html: string, err = false) => {
+      note.innerHTML = html;
+      note.classList.toggle('is-err', err);
+      note.classList.toggle('is-ok', !err);
+    };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      btn.disabled = true;
+      btn.textContent = '접수 중…';
+      try {
+        const res = await fetch('/api/consult', { method: 'POST', body: new FormData(form) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `접수 실패 (${res.status})`);
+        form.reset();
+        say(
+          '✅ 상담 신청이 접수되었습니다. 확인 후 빠르게 연락드리겠습니다.<br />' +
+            (data.id ? `<a href="/consult/${data.id}">상담게시판에서 내 글·답글 보기 →</a>` : '')
+        );
+        btn.textContent = '접수 완료';
+      } catch (err) {
+        say((err as Error).message, true);
+        btn.disabled = false;
+        btn.textContent = '상담 신청하기';
+      }
+    });
+  });
+</script>
+
+<style>
+  .cf {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.6rem;
+    box-shadow: 0 12px 34px rgba(33, 29, 26, 0.06);
+  }
+  .cf__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 0.8rem;
+  }
+  .fld {
+    display: block;
+    margin-bottom: 0.9rem;
+  }
+  .fld > span {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+  .fld em {
+    font-style: normal;
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+  .fld input,
+  .fld select,
+  .fld textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 0.65rem 0.8rem;
+    font: inherit;
+    color: var(--fg);
+    background: var(--bg);
+  }
+  .fld textarea {
+    resize: vertical;
+  }
+  .fld input:focus,
+  .fld select:focus,
+  .fld textarea:focus {
+    outline: 2px solid var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .cf__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+  .cf__agree {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0.2rem 0 1rem;
+    cursor: pointer;
+  }
+  .cf__agree input {
+    margin-top: 0.25rem;
+    accent-color: var(--accent);
+  }
+  .cf__agree a {
+    color: var(--accent);
+  }
+  .cf__btn {
+    width: 100%;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.85rem 1.4rem;
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .cf__btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .cf__note {
+    margin: 0.9rem 0 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .cf__note.is-ok {
+    color: #2f6b35;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .cf__note.is-err {
+    color: #b23b3b;
+    font-weight: 600;
+  }
+  .cf__note a {
+    color: var(--accent);
+  }
+  @media (max-width: 520px) {
+    .cf {
+      padding: 1.2rem;
+    }
+    .cf__row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

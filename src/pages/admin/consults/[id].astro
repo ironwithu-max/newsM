@@ -1,0 +1,74 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getConsult, fmtDateTime, MAX_FAILS } from '../../../lib/consults';
+
+const c = await getConsult(Astro.params.id || '');
+if (!c) return Astro.redirect('/admin/consults', 302);
+const saved = Astro.url.searchParams.has('saved');
+const locked = c.fail_count >= MAX_FAILS;
+---
+
+<AdminLayout title={`상담문의 — ${c.name}`}>
+  <p class="crumb"><a href="/admin/consults">← 상담문의 목록</a></p>
+  {saved && <p class="ok">저장되었습니다.{c.status === 'done' && ' 손님이 상담게시판에서 비밀번호로 답글을 확인할 수 있어요.'}</p>}
+
+  <article class="card q">
+    <header class="q__head">
+      <span class:list={['st', { on: c.status === 'new' }]}>{c.status === 'new' ? '답변 대기' : '답변 완료'}</span>
+      <h1>{c.name} 님의 상담요청</h1>
+      <span class="muted">{fmtDateTime(c.created_at)}</span>
+    </header>
+    <dl class="q__info">
+      <div><dt>연락처</dt><dd><a href={`tel:${c.phone}`}>{c.phone}</a></dd></div>
+      <div><dt>공간 유형</dt><dd>{c.space_type || '-'}</dd></div>
+    </dl>
+    <div class="q__body">{c.message || '(내용 없음)'}</div>
+    {
+      locked && (
+        <form method="post" action="/api/admin/consult-update" class="lockbar">
+          <span>🔒 손님이 비밀번호를 {c.fail_count}번 틀려 조회가 잠겼습니다.</span>
+          <input type="hidden" name="id" value={c.id} />
+          <button class="btn btn--sm btn--line" name="action" value="unlock">잠금 해제</button>
+        </form>
+      )
+    }
+  </article>
+
+  <form method="post" action="/api/admin/consult-update" class="card">
+    <input type="hidden" name="id" value={c.id} />
+    <label for="reply">
+      관리자 답글
+      {c.replied_at && <span class="muted"> — {fmtDateTime(c.replied_at)} 작성</span>}
+    </label>
+    <textarea id="reply" name="reply" maxlength="5000" placeholder="상담 내용에 대한 답변을 작성해 주세요. 저장하면 '답변 완료'로 바뀌고, 손님이 상담게시판에서 비밀번호를 입력해 확인할 수 있습니다.">{c.reply}</textarea>
+    <div class="actions">
+      {c.status === 'done' && <button class="btn btn--line" name="action" value="reopen">답변 대기로 되돌리기</button>}
+      <button class="btn" name="action" value="reply">{c.reply ? '답글 수정' : '답글 등록'}</button>
+    </div>
+  </form>
+
+  <form method="post" action="/api/admin/consult-update" class="del" onsubmit="return confirm('이 상담글을 삭제할까요? 되돌릴 수 없습니다.');">
+    <input type="hidden" name="id" value={c.id} />
+    <button class="btn btn--sm btn--danger" name="action" value="delete">상담글 삭제</button>
+  </form>
+</AdminLayout>
+
+<style>
+  .crumb { margin: 0 0 0.8rem; }
+  .crumb a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+  .crumb a:hover { color: var(--accent); }
+  .q__head { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+  .q__head h1 { margin: 0; font-size: 1.2rem; flex: 1; }
+  .st { font-size: 0.75rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 999px; background: #eee; color: #777; }
+  .st.on { background: #fde8e8; color: #c0362c; }
+  .q__info { display: flex; gap: 0.5rem 2rem; flex-wrap: wrap; margin: 0 0 1rem; }
+  .q__info div { display: flex; gap: 0.6rem; }
+  .q__info dt { font-weight: 700; font-size: 0.88rem; color: var(--muted); }
+  .q__info dd { margin: 0; font-weight: 600; }
+  .q__info a { color: var(--accent); }
+  .q__body { white-space: pre-line; background: var(--bg); border-radius: 10px; padding: 1rem 1.1rem; line-height: 1.75; }
+  .lockbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; color: var(--danger); font-size: 0.9rem; }
+  .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.8rem; }
+  .del { text-align: right; }
+</style>

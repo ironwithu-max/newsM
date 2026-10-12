@@ -3,6 +3,13 @@
 //  ADMIN_USERS(쉼표 구분 아이디) + ADMIN_PASSWORD(공통 비밀번호) 사용
 // ─────────────────────────────────────────────────────────────
 import { defineMiddleware } from 'astro:middleware';
+import {
+  ADMIN_COOKIE,
+  ADMIN_UI_COOKIE,
+  ADMIN_COOKIE_DAYS,
+  makeAdminToken,
+  verifyAdminToken,
+} from './lib/admin-session';
 
 /** 같은 사이트에서 보낸 요청인지 (Origin/Referer 호스트 === 요청 Host) */
 function isSameOrigin(request: Request): boolean {
@@ -41,7 +48,20 @@ export const onRequest = defineMiddleware((context, next) => {
       const i = decoded.indexOf(':');
       const u = decoded.slice(0, i);
       const p = decoded.slice(i + 1);
-      if (users.includes(u) && p === password) return next();
+      if (users.includes(u) && p === password) {
+        // 로그인한 브라우저에 관리자 표시 쿠키 발급 → 공개 페이지에서 새 상담문의 말풍선 표시
+        if (!verifyAdminToken(context.cookies.get(ADMIN_COOKIE)?.value)) {
+          const opts = {
+            path: '/',
+            sameSite: 'lax' as const,
+            secure: context.url.protocol === 'https:',
+            maxAge: ADMIN_COOKIE_DAYS * 86400,
+          };
+          context.cookies.set(ADMIN_COOKIE, makeAdminToken(u), { ...opts, httpOnly: true });
+          context.cookies.set(ADMIN_UI_COOKIE, '1', opts);
+        }
+        return next();
+      }
     } catch {
       /* fallthrough → 401 */
     }

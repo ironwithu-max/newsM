@@ -1,9 +1,17 @@
 ---
 // 관리자 화면 공통 레이아웃 (/admin/*) — 검색엔진 비노출
+import { countNewConsults } from '../lib/consults';
+
 interface Props {
   title: string;
 }
 const { title } = Astro.props;
+const newCount = await countNewConsults();
+const path = Astro.url.pathname;
+const tabs = [
+  { href: '/admin/works', label: '시공사례', on: path.startsWith('/admin/works') },
+  { href: '/admin/consults', label: '상담문의', on: path.startsWith('/admin/consults'), badge: newCount },
+];
 ---
 
 <!doctype html>
@@ -22,8 +30,18 @@ const { title } = Astro.props;
   </head>
   <body>
     <div class="topbar">
-      <a href="/admin/works" class="topbar__brand"><span class="mark">MINAM</span><b>시공사례 관리</b></a>
-      <a href="/works" target="_blank" rel="noopener">사이트 보기 →</a>
+      <a href="/admin/works" class="topbar__brand"><span class="mark">MINAM</span><b>관리자</b></a>
+      <nav class="tabs">
+        {
+          tabs.map((t) => (
+            <a href={t.href} class:list={['tab', { 'is-on': t.on }]}>
+              {t.label}
+              {t.badge ? <span class="bubble" title={`답변 대기 ${t.badge}건`}>💬 {t.badge}</span> : null}
+            </a>
+          ))
+        }
+      </nav>
+      <a href="/" target="_blank" rel="noopener" class="topbar__site">사이트 보기 →</a>
     </div>
     <main class="wrap">
       <slot />
@@ -64,6 +82,22 @@ const { title } = Astro.props;
   .topbar a:hover { color: #fff; }
   .topbar__brand { color: #fff !important; font-size: 1rem !important; }
   .topbar b { font-weight: 800; }
+  .tabs { display: flex; gap: 0.3rem; flex: 1; }
+  .tabs .tab {
+    color: #cdc3b4; font-size: 0.95rem; font-weight: 700;
+    padding: 0.35rem 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .tabs .tab:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+  .tabs .tab.is-on { color: #fff; background: rgba(255, 255, 255, 0.14); }
+  .bubble {
+    background: #e5484d; color: #fff; font-size: 0.72rem; font-weight: 800;
+    padding: 0.05rem 0.45rem; border-radius: 999px; line-height: 1.5;
+  }
+  @media (max-width: 560px) {
+    .topbar { flex-wrap: wrap; }
+    .tabs { order: 3; flex-basis: 100%; }
+    .topbar__brand b { display: none; }
+  }
   .mark {
     border: 1.5px solid var(--accent);
     color: var(--accent);

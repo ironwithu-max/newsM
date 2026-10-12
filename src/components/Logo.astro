@@ -1,0 +1,16 @@
+---
+// ㈜미남테크 로고 — 원본 로고(참고이미지/미남테크 미니멀 브라운 로고.png)를
+//  배경 투명 + 홈페이지 색으로 변환한 이미지
+//  tone="dark"  : 밝은 배경용 (테라코타)   tone="light" : 어두운 배경용 (밝은 탄색)
+interface Props {
+  tone?: 'dark' | 'light';
+  height?: number;
+  class?: string;
+}
+const { tone = 'dark', height = 44, class: cls } = Astro.props;
+const src = tone === 'dark' ? '/images/logo.png' : '/images/logo-light.png';
+// 원본 비율 754 × 180
+const width = Math.round((height * 754) / 180);
+---
+
+<img class={cls} src={src} width={width} height={height} alt="주식회사 미남테크 minam" decoding="async" />

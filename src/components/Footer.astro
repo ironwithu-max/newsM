@@ -1,5 +1,6 @@
 ---
 import { COMPANY } from '../consts';
+import Logo from './Logo.astro';
 const year = new Date().getFullYear();
 ---
 
@@ -8,8 +9,7 @@ const year = new Date().getFullYear();
     <div class="top">
       <div class="col col--brand">
         <div class="fbrand">
-          <span class="fbrand-mark">MINAM</span>
-          <span class="fbrand-name">미남건축디자인</span>
+          <Logo tone="light" height={52} />
         </div>
         <p class="ftag">{COMPANY.slogan}</p>
         <p class="fnote">{COMPANY.legalName} · 대표 {COMPANY.ceo}</p>

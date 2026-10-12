@@ -1,11 +1,12 @@
 ---
 import { NAV, COMPANY } from '../consts';
+import Logo from './Logo.astro';
 ---
 
 <header class="site-header">
   <div class="bar">
     <a href="/" class="brand" aria-label="미남건축디자인 홈">
-      <span class="brand-mark">MINAM</span>
+      <Logo class="brand-logo" height={46} />
       <span class="brand-text">
         <span class="brand-name">미남건축디자인</span>
         <span class="brand-sub">실내건축 · 전기공사 전문시공</span>
@@ -19,6 +20,7 @@ import { NAV, COMPANY } from '../consts';
             <li>
               <a
                 href={item.href}
+                {...(item.href === '/consult' ? { 'data-consult-nav': '' } : {})}
                 {...('external' in item && item.external
                   ? { target: '_blank', rel: 'noopener' }
                   : {})}
@@ -35,8 +37,28 @@ import { NAV, COMPANY } from '../consts';
       <span class="cta-ic">☎</span><span class="cta-num">{COMPANY.tel}</span>
     </a>
   </div>
-
 </header>
+
+<script>
+  // 관리자로 로그인했던 브라우저에서만: 상담문의 메뉴에 새 상담 개수 말풍선
+  if (document.cookie.split('; ').some((c) => c === 'minam_admin_ui=1')) {
+    fetch('/api/consult-count', { cache: 'no-store', credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d || !d.count) return;
+        document.querySelectorAll<HTMLAnchorElement>('[data-consult-nav]').forEach((a) => {
+          const b = document.createElement('a');
+          b.href = '/admin/consults?f=new';
+          b.className = 'consult-bubble';
+          b.title = `답변 대기 상담 ${d.count}건 — 관리자 화면으로`;
+          b.textContent = `💬 ${d.count}`;
+          a.parentElement!.style.position = 'relative';
+          a.parentElement!.appendChild(b);
+        });
+      })
+      .catch(() => {});
+  }
+</script>
 
 <style>
   .site-header {
@@ -62,13 +84,14 @@ import { NAV, COMPANY } from '../consts';
     .bar {
       padding: 0.55rem 1.2rem;
     }
-    .nav {
+    .bar .nav {
       order: 0;
       flex: 1;
       width: auto;
       margin: 0;
+      overflow: visible;
     }
-    .nav ul {
+    .bar .nav ul {
       margin: 0 auto;
       padding: 0;
     }
@@ -81,6 +104,39 @@ import { NAV, COMPANY } from '../consts';
     color: var(--fg);
     text-decoration: none;
     white-space: nowrap;
+  }
+  .brand-logo {
+    display: block;
+    height: 46px;
+    width: auto;
+  }
+  @media (max-width: 480px) {
+    .brand-logo {
+      height: 40px;
+    }
+  }
+  .brand-text {
+    padding-left: 0.7rem;
+    border-left: 1px solid var(--border);
+  }
+  :global(.consult-bubble) {
+    position: absolute;
+    top: -0.45rem;
+    right: -0.5rem;
+    background: #e5484d;
+    color: #fff !important;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0.25rem 0.42rem;
+    border-radius: 999px 999px 999px 3px;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(229, 72, 77, 0.35);
+    animation: bubble-pop 1.8s ease-in-out infinite;
+  }
+  @keyframes bubble-pop {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
   }
   .brand-mark {
     font-weight: 800;
@@ -129,7 +185,7 @@ import { NAV, COMPANY } from '../consts';
   .nav {
     order: 3;
     width: calc(100% + 2.4rem);
-    margin: 0.3rem -1.2rem 0;
+    margin: 0 -1.2rem;
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -142,7 +198,7 @@ import { NAV, COMPANY } from '../consts';
     gap: 0.1rem;
     list-style: none;
     margin: 0;
-    padding: 0.1rem 1.2rem 0.5rem;
+    padding: 0.5rem 1.2rem 0.5rem;
     width: max-content;
   }
   .nav li {
@@ -165,6 +221,9 @@ import { NAV, COMPANY } from '../consts';
 
   @media (max-width: 720px) {
     .brand-sub {
+      display: none;
+    }
+    .brand-text {
       display: none;
     }
   }

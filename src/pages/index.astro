@@ -2,6 +2,7 @@
 export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import WorkCard from '../components/WorkCard.astro';
+import ConsultForm from '../components/ConsultForm.astro';
 import { COMPANY } from '../consts';
 import { listWorks, toCard, FALLBACK_WORKS, PUBLIC_CACHE } from '../lib/works';
 
@@ -97,7 +98,6 @@ const values = [
   },
 ];
 
-const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·매장)', '사무공간·오피스', '전시·홍보관', '전기공사·충전 인프라', '기타 문의'];
 ---
 
 <BaseLayout
@@ -315,56 +315,14 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
           <li><span>지사</span><em>{COMPANY.branchAddress}</em></li>
           <li><span>블로그</span><a href={COMPANY.blog} target="_blank" rel="noopener">blog.naver.com/withudesign</a></li>
         </ul>
+        <a href="/consult" class="contact__board">💬 상담게시판에서 답글 확인하기 →</a>
       </div>
 
-      <form class="contact__form" id="consultForm">
-        <label class="fld">
-          <span>이름</span>
-          <input type="text" name="name" required placeholder="성함을 입력해 주세요" />
-        </label>
-        <label class="fld">
-          <span>연락처</span>
-          <input type="tel" name="phone" required placeholder="010-0000-0000" />
-        </label>
-        <label class="fld">
-          <span>공간 유형</span>
-          <select name="type">
-            {spaceTypes.map((t) => <option value={t}>{t}</option>)}
-          </select>
-        </label>
-        <label class="fld">
-          <span>문의 내용</span>
-          <textarea name="message" rows="4" placeholder="공간 위치·평형·희망 일정 등을 적어주시면 상담이 빨라집니다."></textarea>
-        </label>
-        <button type="submit" class="btn btn--primary btn--block">상담 신청하기</button>
-        <p class="contact__note" id="formNote">
-          * 신청 시 이메일 상담창이 열립니다. 급하신 경우 <a href={`tel:${COMPANY.tel}`}>{COMPANY.tel}</a>로 전화 주세요.
-        </p>
-      </form>
+      <ConsultForm />
     </div>
   </section>
 </BaseLayout>
 
-<script is:inline define:vars={{ email: COMPANY.email }}>
-  const form = document.getElementById('consultForm');
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const f = new FormData(form);
-      const name = (f.get('name') || '').toString().trim();
-      const phone = (f.get('phone') || '').toString().trim();
-      const type = (f.get('type') || '').toString();
-      const message = (f.get('message') || '').toString().trim();
-      const subject = `[상담문의] ${name} 님 (${type})`;
-      const body =
-        `이름: ${name}\n연락처: ${phone}\n공간 유형: ${type}\n\n문의 내용:\n${message}\n`;
-      window.location.href =
-        `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      const note = document.getElementById('formNote');
-      if (note) note.textContent = '상담 신청이 접수되었습니다. 이메일 창에서 전송을 완료해 주세요. 감사합니다.';
-    });
-  }
-</script>
 
 
 <script>
@@ -1019,49 +977,19 @@ const spaceTypes = ['주거공간 (아파트·주택)', '상업공간 (카페·�
   .contact__list em {
     font-style: normal;
   }
-  .contact__form {
-    background: var(--bg);
+  .contact__board {
+    display: inline-block;
+    margin-top: 1.2rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 999px;
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.6rem;
-    box-shadow: 0 12px 34px rgba(33, 29, 26, 0.06);
-  }
-  .fld {
-    display: block;
-    margin-bottom: 0.9rem;
-  }
-  .fld span {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 700;
-    margin-bottom: 0.35rem;
-  }
-  .fld input,
-  .fld select,
-  .fld textarea {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 0.65rem 0.8rem;
-    font: inherit;
     color: var(--fg);
-    background: var(--bg);
+    font-weight: 700;
+    font-size: 0.92rem;
+    text-decoration: none;
   }
-  .fld textarea {
-    resize: vertical;
-  }
-  .fld input:focus,
-  .fld select:focus,
-  .fld textarea:focus {
-    outline: 2px solid var(--accent-soft);
+  .contact__board:hover {
     border-color: var(--accent);
-  }
-  .contact__note {
-    margin: 0.9rem 0 0;
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
-  .contact__note a {
     color: var(--accent);
   }
 

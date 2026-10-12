@@ -1,0 +1,87 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getServiceClient } from '../../../lib/works';
+import { listConsults, fmtDateTime, MAX_FAILS } from '../../../lib/consults';
+
+const configured = !!getServiceClient();
+const f = Astro.url.searchParams.get('f');
+const filter = f === 'new' || f === 'done' ? f : undefined;
+const items = await listConsults(filter);
+const all = filter ? await listConsults() : items;
+const counts = {
+  all: all.length,
+  new: all.filter((c) => c.status === 'new').length,
+  done: all.filter((c) => c.status === 'done').length,
+};
+const preview = (s: string) => (s.length > 60 ? s.slice(0, 60) + '…' : s) || '(내용 없음)';
+---
+
+<AdminLayout title="상담문의">
+  <div class="head">
+    <h1>상담문의 게시판</h1>
+    <nav class="filters">
+      <a href="/admin/consults" class:list={{ 'is-on': !filter }}>전체 {counts.all}</a>
+      <a href="/admin/consults?f=new" class:list={{ 'is-on': filter === 'new' }}>답변 대기 {counts.new}</a>
+      <a href="/admin/consults?f=done" class:list={{ 'is-on': filter === 'done' }}>답변 완료 {counts.done}</a>
+    </nav>
+  </div>
+
+  {!configured && <p class="warn">Supabase 환경변수가 설정되지 않았습니다.</p>}
+
+  <div class="card list">
+    {
+      items.length === 0 ? (
+        <p class="muted">{filter === 'new' ? '답변을 기다리는 상담이 없습니다. 👍' : '접수된 상담문의가 없습니다.'}</p>
+      ) : (
+        <ul class="rows">
+          {items.map((c) => (
+            <li>
+              <a href={`/admin/consults/${c.id}`} class="row">
+                <span class:list={['st', { on: c.status === 'new' }]}>{c.status === 'new' ? '답변 대기' : '답변 완료'}</span>
+                <span class="main">
+                  <b>{c.name}</b>
+                  <span class="muted"> · {c.phone}{c.space_type && ` · ${c.space_type}`}</span>
+                  {c.fail_count >= MAX_FAILS && <span class="lock">🔒 잠김</span>}
+                  <span class="pv">{preview(c.message)}</span>
+                </span>
+                <span class="date muted">{fmtDateTime(c.created_at)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</AdminLayout>
+
+<style>
+  .filters { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .filters a {
+    padding: 0.35rem 0.8rem; border-radius: 999px; border: 1px solid var(--border);
+    background: #fff; color: var(--fg); text-decoration: none; font-size: 0.88rem; font-weight: 600;
+  }
+  .filters a.is-on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .list { padding: 0.3rem 0.4rem; }
+  .list > .muted { padding: 1rem; margin: 0; }
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .rows li + li { border-top: 1px solid var(--border); }
+  .row {
+    display: grid; grid-template-columns: 84px 1fr auto; gap: 0.9rem; align-items: center;
+    padding: 0.85rem 0.8rem; color: var(--fg); text-decoration: none; border-radius: 10px;
+  }
+  .row:hover { background: var(--bg); }
+  .st {
+    font-size: 0.75rem; font-weight: 800; text-align: center; padding: 0.2rem 0;
+    border-radius: 999px; background: #eee; color: #777;
+  }
+  .st.on { background: #fde8e8; color: #c0362c; }
+  .main { min-width: 0; }
+  .pv { display: block; font-size: 0.88rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lock { margin-left: 0.4rem; font-size: 0.75rem; color: var(--danger); font-weight: 700; }
+  .date { font-size: 0.8rem; white-space: nowrap; }
+  @media (max-width: 640px) {
+    .row { grid-template-columns: 72px 1fr; }
+    .date { grid-column: 2; }
+  }
+</style>
