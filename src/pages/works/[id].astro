@@ -15,7 +15,8 @@ const paragraphs = work.content
 const summary =
   work.content.replace(/\s+/g, ' ').trim().slice(0, 140) ||
   `${work.title} — ${COMPANY.brandName} 시공사례`;
-const dateLabel = work.work_date ? work.work_date.replace(/-/g, '.') : '';
+// 시공 시기는 연·월까지만 표시 (예: 2022.01)
+const dateLabel = work.work_date ? work.work_date.slice(0, 7).replace('-', '.') : '';
 
 Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
 ---
