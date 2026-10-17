@@ -48,8 +48,8 @@ export const NAV = [
   { href: '/#business', label: '사업분야' },
   { href: '/works', label: '시공사례' },
   { href: '/#about', label: '회사소개' },
-  { href: '/consult', label: '상담문의' },
   { href: 'https://blog.naver.com/withudesign', label: '블로그', external: true },
+  { href: '/consult', label: '상담문의' },
 ] as const;
 
 // ─────────────────────────────────────────────────────────────
