@@ -1,16 +1,24 @@
 ---
 import { NAV, COMPANY } from '../consts';
 import Logo from './Logo.astro';
+
+interface Props {
+  /** true 이면 로고 옆 상호·슬로건 문구를 숨김 (페이지 배너에 따로 표시하는 경우) */
+  hideBrandText?: boolean;
+}
+const { hideBrandText = false } = Astro.props;
 ---
 
 <header class="site-header">
   <div class="bar">
     <a href="/" class="brand" aria-label="미남건축디자인 홈">
       <Logo class="brand-logo" height={46} />
-      <span class="brand-text">
-        <span class="brand-name">미남건축디자인</span>
-        <span class="brand-sub">실내건축 · 전기공사 전문시공</span>
-      </span>
+      {!hideBrandText && (
+        <span class="brand-text">
+          <span class="brand-name">미남건축디자인</span>
+          <span class="brand-sub">실내건축 · 전기공사 전문시공</span>
+        </span>
+      )}
     </a>
 
     <nav class="nav" aria-label="주요 메뉴">

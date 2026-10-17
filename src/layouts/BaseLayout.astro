@@ -12,9 +12,11 @@ interface Props {
   article?: boolean;
   /** true 이면 본문을 .container 로 감싸지 않고 전체폭으로 렌더링 (랜딩용) */
   wide?: boolean;
+  /** true 이면 헤더 로고 옆 상호·슬로건 문구 숨김 */
+  hideBrandText?: boolean;
 }
 
-const { title, description, image, article, wide = false } = Astro.props;
+const { title, description, image, article, wide = false, hideBrandText = false } = Astro.props;
 const adsenseEnabled = SITE.adsenseClient.startsWith('ca-pub-');
 ---
 
@@ -43,7 +45,7 @@ const adsenseEnabled = SITE.adsenseClient.startsWith('ca-pub-');
     }
   </head>
   <body>
-    <Header />
+    <Header hideBrandText={hideBrandText} />
     {
       wide ? (
         <main>
