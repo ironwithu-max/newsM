@@ -1,24 +1,12 @@
 ---
 import { NAV, COMPANY } from '../consts';
 import Logo from './Logo.astro';
-
-interface Props {
-  /** true 이면 로고 옆 상호·슬로건 문구를 숨김 (페이지 배너에 따로 표시하는 경우) */
-  hideBrandText?: boolean;
-}
-const { hideBrandText = false } = Astro.props;
 ---
 
 <header class="site-header">
   <div class="bar">
     <a href="/" class="brand" aria-label="미남건축디자인 홈">
       <Logo class="brand-logo" height={60} />
-      {!hideBrandText && (
-        <span class="brand-text">
-          <span class="brand-name">미남건축디자인</span>
-          <span class="brand-sub">실내건축 · 전기공사 전문시공</span>
-        </span>
-      )}
     </a>
 
     <nav class="nav" aria-label="주요 메뉴">
@@ -124,10 +112,6 @@ const { hideBrandText = false } = Astro.props;
       height: 48px;
     }
   }
-  .brand-text {
-    padding-left: 0.7rem;
-    border-left: 1px solid var(--border);
-  }
   :global(.consult-bubble) {
     position: absolute;
     top: -0.45rem;
@@ -156,22 +140,6 @@ const { hideBrandText = false } = Astro.props;
     padding: 0.18rem 0.4rem 0.14rem 0.5rem;
     border-radius: 6px;
     line-height: 1;
-  }
-  .brand-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.15;
-  }
-  .brand-name {
-    font-weight: 800;
-    font-size: 1.1rem;
-    letter-spacing: -0.02em;
-  }
-  .brand-sub {
-    font-size: 0.72rem;
-    color: var(--muted);
-    font-weight: 600;
-    letter-spacing: -0.01em;
   }
   /* 전화 CTA */
   .cta {
@@ -233,14 +201,6 @@ const { hideBrandText = false } = Astro.props;
     font-weight: 800;
   }
 
-  @media (max-width: 720px) {
-    .brand-sub {
-      display: none;
-    }
-    .brand-text {
-      display: none;
-    }
-  }
   /* 휴대폰: 로고와 전화 버튼이 한 줄에 들어가도록 */
   @media (max-width: 480px) {
     .bar {
@@ -252,9 +212,6 @@ const { hideBrandText = false } = Astro.props;
     .brand-mark {
       letter-spacing: 0.12em;
       font-size: 0.95rem;
-    }
-    .brand-name {
-      font-size: 1rem;
     }
     .cta {
       padding: 0.45rem 0.75rem;
