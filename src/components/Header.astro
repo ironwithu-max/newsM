@@ -12,7 +12,7 @@ const { hideBrandText = false } = Astro.props;
 <header class="site-header">
   <div class="bar">
     <a href="/" class="brand" aria-label="미남건축디자인 홈">
-      <Logo class="brand-logo" height={46} />
+      <Logo class="brand-logo" height={60} />
       {!hideBrandText && (
         <span class="brand-text">
           <span class="brand-name">미남건축디자인</span>
@@ -115,12 +115,12 @@ const { hideBrandText = false } = Astro.props;
   }
   .brand-logo {
     display: block;
-    height: 46px;
+    height: 60px;
     width: auto;
   }
   @media (max-width: 480px) {
     .brand-logo {
-      height: 40px;
+      height: 48px;
     }
   }
   .brand-text {
