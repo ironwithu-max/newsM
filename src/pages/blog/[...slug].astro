@@ -2,7 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdSlot from '../../components/AdSlot.astro';
-import { categoryLabel } from '../../consts';
+import { categoryLabel, COMPANY } from '../../consts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -15,6 +15,7 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 const { title, description, category, pubDate, updatedDate, tags } = post.data;
+const isRealestate = category === 'realestate';
 
 const dateStr = pubDate.toLocaleDateString('ko-KR', {
   year: 'numeric',
@@ -26,7 +27,7 @@ const dateStr = pubDate.toLocaleDateString('ko-KR', {
 <BaseLayout title={title} description={description} article={true}>
   <article>
     <header class="post-head">
-      <a class="cat" href={`/category/${category}/`}>{categoryLabel(category)}</a>
+      <a class="cat" href={isRealestate ? '/realestate' : `/category/${category}/`}>{isRealestate ? '부동산 정보' : categoryLabel(category)}</a>
       <h1>{title}</h1>
       <div class="meta">
         <time datetime={pubDate.toISOString()}>{dateStr}</time>
@@ -52,7 +53,16 @@ const dateStr = pubDate.toLocaleDateString('ko-KR', {
       )
     }
 
-    <p class="back"><a href="/blog/">← 전체 글 목록</a></p>
+    {
+      isRealestate && (
+        <div class="re-cta">
+          <p><strong>입주 전 리모델링, 미리 견적을 받아 보세요.</strong> 아파트 구조와 예산에 맞춰 {COMPANY.brandName}이 설계부터 시공까지 안내해 드립니다.</p>
+          <a href="/consult">상담문의 하기 →</a>
+        </div>
+      )
+    }
+
+    <p class="back"><a href={isRealestate ? '/realestate' : '/blog/'}>← {isRealestate ? '부동산 정보 목록' : '전체 글 목록'}</a></p>
   </article>
 </BaseLayout>
 
@@ -89,5 +99,20 @@ const dateStr = pubDate.toLocaleDateString('ko-KR', {
   }
   .back {
     margin-top: 2rem;
+  }
+  .re-cta {
+    margin: 2rem 0 0;
+    padding: 1.2rem 1.4rem;
+    border-radius: 14px;
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+  }
+  .re-cta p {
+    margin: 0 0 0.6rem;
+  }
+  .re-cta a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
   }
 </style>

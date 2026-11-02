@@ -1,0 +1,280 @@
+---
+// 부동산 정보 — 블로그 글 중 category: realestate 만 모아 보여주는 게시판
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COMPANY } from '../../consts';
+
+/** 주제 필터 — 글의 tags 에 아래 단어가 하나라도 있으면 해당 주제 */
+const TOPICS = [
+  { key: 'market', label: '아파트 시장동향', tags: ['시장동향', '아파트시세', '실거래가', '매매가격'] },
+  { key: 'cheongyak', label: '청약', tags: ['청약', '분양'] },
+  { key: 'lease', label: '전세·월세', tags: ['전세', '월세', '임대차', '전세사기'] },
+  { key: 'remodel', label: '리모델링 팁', tags: ['리모델링', '인테리어', '입주'] },
+];
+
+const posts = (await getCollection('blog', ({ data }) => data.category === 'realestate' && !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+const topicsOf = (tags: string[]) => TOPICS.filter((t) => t.tags.some((x) => tags.includes(x))).map((t) => t.key);
+const fmt = (d: Date) =>
+  d.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\s/g, '').replace(/\.$/, '');
+---
+
+<BaseLayout
+  title="부동산 정보"
+  description={`${COMPANY.brandName}이 정리한 부동산 정보 — 아파트 시장동향, 청약, 전세·월세 체크리스트, 리모델링 전에 알아두면 좋은 정보.`}
+  wide={true}
+>
+  <section class="rhero">
+    <div class="rhero__wrap">
+      <p class="crumb"><a href="/">홈</a> <span>/</span> 부동산 정보</p>
+      <p class="rhero__eyebrow">REAL ESTATE</p>
+      <h1 class="rhero__title">부동산 정보</h1>
+      <p class="rhero__lead">
+        아파트 시장동향부터 청약·전세 체크리스트, 리모델링 전에 꼭 알아둘 내용까지. 매주 월요일·목요일에 새 글을 올립니다.
+      </p>
+    </div>
+  </section>
+
+  <section class="rsec">
+    <div class="rwrap">
+      <nav class="chips" aria-label="주제">
+        <button type="button" class="chip is-on" data-topic="">전체 {posts.length}</button>
+        {TOPICS.map((t) => (
+          <button type="button" class="chip" data-topic={t.key}>{t.label}</button>
+        ))}
+      </nav>
+
+      {
+        posts.length === 0 ? (
+          <p class="empty">곧 첫 글이 올라옵니다.</p>
+        ) : (
+          <ul class="list">
+            {posts.map((p) => (
+              <li data-topics={topicsOf(p.data.tags).join(' ')}>
+                <a href={`/blog/${p.id}/`} class="item">
+                  <span class="item__date">{fmt(p.data.pubDate)}</span>
+                  <span class="item__body">
+                    <span class="item__title">{p.data.title}</span>
+                    <span class="item__desc">{p.data.description}</span>
+                    <span class="item__tags">{p.data.tags.slice(0, 4).map((t) => `#${t}`).join(' ')}</span>
+                  </span>
+                  <span class="item__go" aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      <p class="empty" data-empty hidden>이 주제의 글은 곧 올라옵니다.</p>
+
+      <div class="cta">
+        <p>집을 사거나 입주하기 전, 리모델링 견적이 궁금하신가요?</p>
+        <div class="cta__btns">
+          <a href="/consult" class="btn btn--primary">상담문의 하기</a>
+          <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.chip'));
+  const items = Array.from(document.querySelectorAll<HTMLLIElement>('.list li'));
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+  chips.forEach((c) =>
+    c.addEventListener('click', () => {
+      const t = c.dataset.topic || '';
+      chips.forEach((x) => x.classList.toggle('is-on', x === c));
+      let shown = 0;
+      items.forEach((li) => {
+        const ok = !t || (li.dataset.topics || '').split(' ').includes(t);
+        li.hidden = !ok;
+        if (ok) shown++;
+      });
+      if (empty) empty.hidden = shown > 0;
+    })
+  );
+</script>
+
+<style>
+  .rhero {
+    background:
+      radial-gradient(900px 400px at 85% -20%, rgba(163, 93, 58, 0.3), transparent 60%),
+      var(--ink);
+    color: #ece5db;
+  }
+  .rhero__wrap,
+  .rwrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2.2rem 1.2rem 2.6rem;
+  }
+  .crumb {
+    font-size: 0.85rem;
+    color: #a89f92;
+    margin: 0 0 1rem;
+  }
+  .crumb a {
+    color: #cdc3b4;
+    text-decoration: none;
+  }
+  .crumb span {
+    margin: 0 0.35rem;
+    opacity: 0.5;
+  }
+  .rhero__eyebrow {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #d9a985;
+    letter-spacing: 0.12em;
+  }
+  .rhero__title {
+    margin: 0.3rem 0 0.5rem;
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .rhero__lead {
+    margin: 0;
+    color: #cdc3b4;
+    max-width: 44rem;
+    font-size: 0.98rem;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+  .chip {
+    padding: 0.4rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .chip.is-on {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--ink);
+  }
+  .list li {
+    border-bottom: 1px solid var(--border);
+  }
+  .item {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.1rem 0.4rem;
+    color: var(--fg);
+    text-decoration: none;
+  }
+  .item:hover {
+    background: var(--bg-soft);
+  }
+  .item:hover .item__title {
+    color: var(--accent);
+  }
+  .item__date {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .item__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+  .item__title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.45;
+  }
+  .item__desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .item__tags {
+    font-size: 0.78rem;
+    color: var(--accent);
+  }
+  .item__go {
+    color: var(--muted);
+  }
+  .empty {
+    color: var(--muted);
+    padding: 2rem 0;
+  }
+  .cta {
+    margin-top: 2.6rem;
+    padding: 1.6rem 1.8rem;
+    border-radius: 16px;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .cta p {
+    margin: 0;
+    font-weight: 600;
+  }
+  .cta__btns {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+  }
+  .btn--primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn--line {
+    border-color: var(--border);
+    color: var(--fg);
+    background: #fff;
+  }
+  @media (max-width: 560px) {
+    .item {
+      grid-template-columns: 1fr;
+      gap: 0.3rem;
+    }
+    .item__go {
+      display: none;
+    }
+  }
+</style>
