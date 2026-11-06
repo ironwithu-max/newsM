@@ -167,10 +167,65 @@ export const toCard = (w: Work): WorkCardData => ({
   href: `/works/${w.id}`,
   img: coverOf(w),
   title: w.title,
-  tag: w.tag,
+  tag: groupLabel(groupOf(w)),
   location: w.location,
   count: w.images.length,
 });
 
 /** 공개 SSR 페이지 CDN 캐시 (관리자 수정 후 최대 1분 내 반영) */
 export const PUBLIC_CACHE = 'public, max-age=0, s-maxage=60, stale-while-revalidate=300';
+
+// ─────────────────────────────────────────────────────────────
+//  시공 종류 묶음 — 제목으로 판단 (관리자 분류 칸이 비어 있거나 제각각이어도 일정하게)
+//  메인·게시판 '전체'에서 아파트 → 상업공간 → 학원 → 주간보호 → 충전 순으로 섞어 보여줌
+// ─────────────────────────────────────────────────────────────
+export const WORK_GROUPS = [
+  { key: 'apt', label: '아파트·주거' },
+  { key: 'shop', label: '상업공간' },
+  { key: 'edu', label: '학원·교육' },
+  { key: 'care', label: '주간보호·복지' },
+  { key: 'ev', label: '전기차 충전' },
+] as const;
+export type WorkGroup = (typeof WORK_GROUPS)[number]['key'];
+
+export function groupOf(w: Pick<Work, 'title' | 'tag'>): WorkGroup {
+  const t = `${w.title} ${w.tag}`;
+  if (/주간보호|데이케어|요양|재활|복지/.test(t)) return 'care';
+  if (/학원|영어|수학|교육|어학/.test(t)) return 'edu';
+  if (/충전/.test(t)) return 'ev';
+  if (/아파트|\d+\s*평|리모델링|주거|자이|캐슬|센트리움|유니빌|팀버빌리지|꿈에그린|블루밍|메르디앙|트리비앙|다숲|유수안|황토방|빌라|주택/.test(t)) return 'apt';
+  return 'shop';
+}
+export const groupLabel = (g: WorkGroup) => WORK_GROUPS.find((x) => x.key === g)!.label;
+
+/** 공개 글 전체 (정렬 순서 → 최신순) */
+export async function listAllPublished(): Promise<Work[]> {
+  const { items } = await listWorks({ perPage: 1000 });
+  return items;
+}
+
+/** 섞을 때 번갈아 나오는 종류 (전기차 충전은 맨 뒤에 모아서) */
+const MIX_ORDER: WorkGroup[] = ['apt', 'shop', 'edu', 'care'];
+
+/** 아파트 → 상업공간 → 학원 → 주간보호 순으로 한 건씩 돌아가며 섞기 (각 종류 안에서는 원래 순서 유지) */
+export function mixWorks(items: Work[]): Work[] {
+  const buckets = new Map<WorkGroup, Work[]>(WORK_GROUPS.map((g) => [g.key, []]));
+  for (const w of items) buckets.get(groupOf(w))!.push(w);
+  const out: Work[] = [];
+  while (MIX_ORDER.some((k) => buckets.get(k)!.length))
+    for (const k of MIX_ORDER) {
+      const b = buckets.get(k)!;
+      if (b.length) out.push(b.shift()!);
+    }
+  return out.concat(buckets.get('ev')!);
+}
+
+/** 무작위 섞기 (첫 화면 슬라이드용) */
+export function shuffle<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}

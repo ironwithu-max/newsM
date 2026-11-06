@@ -50,7 +50,7 @@ export const NAV = [
   { href: '/#about', label: '회사소개' },
   { href: 'https://blog.naver.com/withudesign', label: '블로그', external: true },
   { href: '/consult', label: '상담문의' },
-  { href: '/realestate', label: '부동산 정보' },
+  { href: '/realestate', label: '생활정보' },
 ] as const;
 
 // ─────────────────────────────────────────────────────────────

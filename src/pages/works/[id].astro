@@ -2,7 +2,7 @@
 export const prerender = false;
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { COMPANY } from '../../consts';
-import { getWork, getNeighbors, coverOf, PUBLIC_CACHE } from '../../lib/works';
+import { getWork, getNeighbors, coverOf, groupOf, groupLabel, PUBLIC_CACHE } from '../../lib/works';
 
 const work = await getWork(Astro.params.id || '');
 if (!work) return Astro.redirect('/works', 302);
@@ -25,7 +25,7 @@ Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
   <article class="wd">
     <header class="wd__head">
       <p class="crumb"><a href="/">홈</a> <span>/</span> <a href="/works">시공사례</a></p>
-      {work.tag && <a href={`/works?tag=${encodeURIComponent(work.tag)}`} class="wd__tag">{work.tag}</a>}
+      <a href={`/works?type=${groupOf(work)}`} class="wd__tag">{groupLabel(groupOf(work))}</a>
       <h1 class="wd__title">{work.title}</h1>
       {
         (work.location || dateLabel) && (

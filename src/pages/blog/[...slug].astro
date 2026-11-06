@@ -27,7 +27,7 @@ const dateStr = pubDate.toLocaleDateString('ko-KR', {
 <BaseLayout title={title} description={description} article={true}>
   <article>
     <header class="post-head">
-      <a class="cat" href={isRealestate ? '/realestate' : `/category/${category}/`}>{isRealestate ? '부동산 정보' : categoryLabel(category)}</a>
+      <a class="cat" href={isRealestate ? '/realestate' : `/category/${category}/`}>{isRealestate ? '생활정보' : categoryLabel(category)}</a>
       <h1>{title}</h1>
       <div class="meta">
         <time datetime={pubDate.toISOString()}>{dateStr}</time>
@@ -62,7 +62,7 @@ const dateStr = pubDate.toLocaleDateString('ko-KR', {
       )
     }
 
-    <p class="back"><a href={isRealestate ? '/realestate' : '/blog/'}>← {isRealestate ? '부동산 정보 목록' : '전체 글 목록'}</a></p>
+    <p class="back"><a href={isRealestate ? '/realestate' : '/blog/'}>← {isRealestate ? '생활정보 목록' : '전체 글 목록'}</a></p>
   </article>
 </BaseLayout>
 

@@ -3,30 +3,30 @@ export const prerender = false;
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import WorkCard from '../../components/WorkCard.astro';
 import { COMPANY } from '../../consts';
-import { listWorks, toCard, FALLBACK_WORKS, WORK_TAGS, PUBLIC_CACHE, getServiceClient } from '../../lib/works';
+import { listAllPublished, mixWorks, groupOf, WORK_GROUPS, type WorkGroup, toCard, FALLBACK_WORKS, PUBLIC_CACHE } from '../../lib/works';
 
 const PER_PAGE = 12;
-const tag = Astro.url.searchParams.get('tag') || '';
+const typeParam = Astro.url.searchParams.get('type') || '';
+const type = (WORK_GROUPS.some((g) => g.key === typeParam) ? typeParam : '') as WorkGroup | '';
 const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') || '1', 10) || 1);
 
-const { items, total } = await listWorks({ tag: tag || undefined, page, perPage: PER_PAGE });
+// 전체: 아파트·상업공간·학원·주간보호가 번갈아 나오게 섞기 / 종류 선택: 그 종류만 (정렬 순서 → 최신순)
+const all = await listAllPublished();
+const filtered = type ? all.filter((w) => groupOf(w) === type) : mixWorks(all);
+const total = filtered.length;
 const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+const items = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-// 실제 사용 중인 분류만 필터에 노출 (+ 기본 목록 순서 유지)
-let tags: string[] = [];
-const sb = getServiceClient();
-if (sb) {
-  const { data } = await sb.from('works').select('tag').eq('published', true);
-  const used = new Set((data || []).map((r: { tag: string }) => r.tag).filter(Boolean));
-  tags = [...WORK_TAGS.filter((t) => used.has(t)), ...[...used].filter((t) => !WORK_TAGS.includes(t))];
-}
+// 실제 글이 있는 종류만 버튼으로
+const groups = WORK_GROUPS.filter((g) => all.some((w) => groupOf(w) === g.key));
+const typeLabel = WORK_GROUPS.find((g) => g.key === type)?.label || '';
 
-const useFallback = total === 0 && !tag;
+const useFallback = all.length === 0;
 const cards = useFallback ? FALLBACK_WORKS : items.map(toCard);
 
 const qs = (p: { tag?: string; page?: number }) => {
   const s = new URLSearchParams();
-  if (p.tag) s.set('tag', p.tag);
+  if (p.tag) s.set('type', p.tag);
   if (p.page && p.page > 1) s.set('page', String(p.page));
   const q = s.toString();
   return q ? `/works?${q}` : '/works';
@@ -36,7 +36,7 @@ Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
 ---
 
 <BaseLayout
-  title={tag ? `${tag} 시공사례` : '시공사례'}
+  title={typeLabel ? `${typeLabel} 시공사례` : '시공사례'}
   description={`${COMPANY.brandName}(${COMPANY.legalName})의 실내건축·리모델링·전기공사 시공사례 모음. 주거공간, 상업공간, 전시·쇼룸 등 실제 현장 사진과 시공 내용을 확인하세요.`}
   wide={true}
 >
@@ -58,11 +58,11 @@ Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
   <section class="wsec">
     <div class="wwrap">
       {
-        tags.length > 0 && (
+        groups.length > 0 && (
           <nav class="filter" aria-label="분류">
-            <a href={qs({})} class:list={['chip', { 'is-on': !tag }]}>전체</a>
-            {tags.map((t) => (
-              <a href={qs({ tag: t })} class:list={['chip', { 'is-on': tag === t }]}>{t}</a>
+            <a href={qs({})} class:list={['chip', { 'is-on': !type }]}>전체 {all.length}</a>
+            {groups.map((g) => (
+              <a href={qs({ tag: g.key })} class:list={['chip', { 'is-on': type === g.key }]}>{g.label}</a>
             ))}
           </nav>
         )
@@ -81,11 +81,11 @@ Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
       {
         pages > 1 && (
           <nav class="pager" aria-label="페이지">
-            {page > 1 && <a href={qs({ tag, page: page - 1 })}>‹ 이전</a>}
+            {page > 1 && <a href={qs({ tag: type, page: page - 1 })}>‹ 이전</a>}
             {Array.from({ length: pages }, (_, i) => i + 1).map((n) =>
-              n === page ? <span class="is-on">{n}</span> : <a href={qs({ tag, page: n })}>{n}</a>
+              n === page ? <span class="is-on">{n}</span> : <a href={qs({ tag: type, page: n })}>{n}</a>
             )}
-            {page < pages && <a href={qs({ tag, page: page + 1 })}>다음 ›</a>}
+            {page < pages && <a href={qs({ tag: type, page: page + 1 })}>다음 ›</a>}
           </nav>
         )
       }

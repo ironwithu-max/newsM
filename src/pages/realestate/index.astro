@@ -1,5 +1,5 @@
 ---
-// 부동산 정보 — 블로그 글 중 category: realestate 만 모아 보여주는 게시판
+// 생활정보 — 블로그 글 중 category: realestate 만 모아 보여주는 게시판
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { COMPANY } from '../../consts';
@@ -21,15 +21,15 @@ const fmt = (d: Date) =>
 ---
 
 <BaseLayout
-  title="부동산 정보"
-  description={`${COMPANY.brandName}이 정리한 부동산 정보 — 아파트 시장동향, 청약, 전세·월세 체크리스트, 리모델링 전에 알아두면 좋은 정보.`}
+  title="생활정보"
+  description={`${COMPANY.brandName}이 정리한 생활정보 — 아파트 시장동향, 청약, 전세·월세 체크리스트, 리모델링 전에 알아두면 좋은 정보.`}
   wide={true}
 >
   <section class="rhero">
     <div class="rhero__wrap">
-      <p class="crumb"><a href="/">홈</a> <span>/</span> 부동산 정보</p>
-      <p class="rhero__eyebrow">REAL ESTATE</p>
-      <h1 class="rhero__title">부동산 정보</h1>
+      <p class="crumb"><a href="/">홈</a> <span>/</span> 생활정보</p>
+      <p class="rhero__eyebrow">LIFE INFO</p>
+      <h1 class="rhero__title">생활정보</h1>
       <p class="rhero__lead">
         아파트 시장동향부터 청약·전세 체크리스트, 리모델링 전에 꼭 알아둘 내용까지. 매주 월요일·목요일에 새 글을 올립니다.
       </p>

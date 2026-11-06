@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import WorkCard from '../components/WorkCard.astro';
 import ConsultForm from '../components/ConsultForm.astro';
 import { COMPANY } from '../consts';
-import { listWorks, toCard, FALLBACK_WORKS, PUBLIC_CACHE } from '../lib/works';
+import { listAllPublished, mixWorks, shuffle, toCard, FALLBACK_WORKS, PUBLIC_CACHE } from '../lib/works';
 
 const stats = [
   { num: '12+', label: '건축·인테리어 경력(년)' },
@@ -63,11 +63,11 @@ const strengths = [
   },
 ];
 
-// 시공사례: 관리자 게시판(/admin/works) 등록 글 중 앞 8건. 없으면 기본 8장.
-const { items: latestWorks } = await listWorks({ perPage: 8 });
-const works = latestWorks.length ? latestWorks.map(toCard) : FALLBACK_WORKS;
-// 첫 화면 슬라이드: 게시판 대표사진 (최대 8장, 5초마다 전환)
-const slides = works.slice(0, 8);
+// 시공사례: 게시판 전체 글을 아파트·상업공간·학원·주간보호가 번갈아 나오게 섞어 앞 8건. 없으면 기본 사진.
+const allWorks = await listAllPublished();
+const works = allWorks.length ? mixWorks(allWorks).slice(0, 8).map(toCard) : FALLBACK_WORKS;
+// 첫 화면 슬라이드: 전체 시공사례 대표사진을 무작위 순서로 (5초마다 전환)
+const slides = allWorks.length ? shuffle(allWorks).map(toCard) : FALLBACK_WORKS;
 Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
 
 const process = [
@@ -145,10 +145,10 @@ const values = [
                 })}
               </div>
               {slides.length > 1 && (
-                <div class="hero__dots">
-                  {slides.map((w, i) => (
-                    <button type="button" class:list={['hero__dot', { 'is-on': i === 0 }]} aria-label={`${i + 1}번째 사진: ${w.title}`} data-i={i} />
-                  ))}
+                <div class="hero__nav">
+                  <button type="button" class="hero__arrow" data-step="-1" aria-label="이전 사진">‹</button>
+                  <span class="hero__count"><b data-cur>1</b> / {slides.length}</span>
+                  <button type="button" class="hero__arrow" data-step="1" aria-label="다음 사진">›</button>
                 </div>
               )}
             </div>
@@ -321,12 +321,12 @@ const values = [
 
 
 <script>
-  // 첫 화면 사진 슬라이드 — 5초마다 다음 사진, 점 클릭·좌우 밀기로 이동
+  // 첫 화면 사진 슬라이드 — 5초마다 다음 사진, ‹ › 버튼·좌우 밀기로 이동
   const hero = document.querySelector<HTMLElement>('[data-hero]');
   const imgs = hero ? Array.from(hero.querySelectorAll<HTMLImageElement>('.hero__slide')) : [];
   if (hero && imgs.length > 1) {
     const caps = Array.from(hero.querySelectorAll<HTMLElement>('.hero__cap'));
-    const dots = Array.from(hero.querySelectorAll<HTMLButtonElement>('.hero__dot'));
+    const curEl = hero.querySelector<HTMLElement>('[data-cur]');
     const load = (i: number) => {
       const img = imgs[i];
       if (img && img.dataset.src) {
@@ -340,19 +340,20 @@ const values = [
       const next = (n + imgs.length) % imgs.length;
       load(next);
       load((next + 1) % imgs.length); // 다음 사진 미리 받기
-      [imgs, caps, dots].forEach((list) =>
+      [imgs, caps].forEach((list) =>
         list.forEach((el, i) => el.classList.toggle('is-on', i === next))
       );
       cur = next;
+      if (curEl) curEl.textContent = String(next + 1);
     };
     const start = () => {
       clearInterval(timer);
       timer = window.setInterval(() => show(cur + 1), 5000);
     };
     load(1);
-    dots.forEach((d) =>
-      d.addEventListener('click', () => {
-        show(Number(d.dataset.i));
+    hero.querySelectorAll<HTMLButtonElement>('.hero__arrow').forEach((b) =>
+      b.addEventListener('click', () => {
+        show(cur + Number(b.dataset.step));
         start();
       })
     );
@@ -567,25 +568,37 @@ const values = [
   a.hero__cap:hover .hero__cap-title {
     color: #f0c9a8;
   }
-  .hero__dots {
+  .hero__nav {
     display: flex;
+    align-items: center;
     gap: 0.35rem;
     flex-shrink: 0;
-    padding-bottom: 0.25rem;
   }
-  .hero__dot {
-    width: 8px;
-    height: 8px;
+  .hero__arrow {
+    width: 30px;
+    height: 30px;
     padding: 0;
-    border: 0;
+    border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(20, 17, 15, 0.45);
+    color: #fff;
+    font-size: 1.1rem;
+    line-height: 1;
     cursor: pointer;
-    transition: width 0.3s, background 0.3s;
   }
-  .hero__dot.is-on {
-    width: 22px;
+  .hero__arrow:hover {
     background: var(--accent);
+    border-color: var(--accent);
+  }
+  .hero__count {
+    min-width: 3.6rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-variant-numeric: tabular-nums;
+  }
+  .hero__count b {
+    color: #fff;
   }
   @media (prefers-reduced-motion: reduce) {
     .hero__slide,
