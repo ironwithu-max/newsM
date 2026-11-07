@@ -156,9 +156,9 @@ const values = [
         <a class="fxb__logo" href="https://fixhome.ai.kr/" target="_blank" rel="noopener" aria-label="픽스홈 바로가기">
           <img src="/images/fixhome-wordmark.png" alt="FIXHOME 픽스홈" width="218" height="32" />
         </a>
-        <span class="fxb__kicker"><b>생활수리</b><b>긴급수리</b></span>
+        <span class="fxb__kicker"><b>생활수리</b><i>·</i><b>긴급수리</b></span>
         <strong class="fxb__title">집수리의 모든 것, <em>픽스홈</em></strong>
-        <a class="fxb__cta" href="https://fixhome.ai.kr/" target="_blank" rel="noopener">픽스홈 바로가기 →</a>
+        <a class="fxb__cta" href="https://fixhome.ai.kr/" target="_blank" rel="noopener" aria-label="픽스홈 바로가기"><img src="/images/fixhome-wordmark.png" alt="" width="109" height="16" /><span>바로가기</span></a>
         <p class="fxb__sub">
           생활 속 작은 고장부터 급한 수리까지 미남테크 집수리 서비스
           <a class="fxb__recruit" href="/blog/2026-07-29-fixhome-partner-recruit/">(전문 기사 모집)</a>
@@ -641,19 +641,23 @@ const values = [
   .fxb__kicker {
     grid-area: kicker;
     display: flex;
+    align-items: baseline;
     gap: 0.3rem;
-  }
-  .fxb__kicker b {
-    font-size: 0.74rem;
-    font-weight: 800;
-    padding: 0.12rem 0.5rem;
-    border-radius: 999px;
-    color: #fff;
-    background: #ff6a00;
     white-space: nowrap;
   }
-  .fxb__kicker b + b {
-    background: #1faa47;
+  .fxb__kicker b {
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: #ff6a00;
+  }
+  .fxb__kicker b:last-child {
+    color: #1faa47;
+  }
+  .fxb__kicker i {
+    font-style: normal;
+    color: #b9b0a5;
+    font-weight: 700;
   }
   .fxb__title {
     grid-area: title;
@@ -688,16 +692,30 @@ const values = [
   }
   .fxb__cta {
     grid-area: cta;
-    padding: 0.5rem 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1rem;
     border-radius: 999px;
-    font-weight: 800;
-    font-size: 0.9rem;
-    color: #fff;
+    background: #fff;
+    border: 2px solid #1faa47;
+    box-shadow: 0 4px 14px rgba(31, 170, 71, 0.18);
     text-decoration: none;
     white-space: nowrap;
-    background: linear-gradient(90deg, #ff6a00, #1faa47);
-    box-shadow: 0 6px 16px rgba(255, 106, 0, 0.25);
     transition: transform 0.15s;
+  }
+  .fxb__cta img {
+    display: block;
+    height: 16px;
+    width: auto;
+    border-radius: 0;
+  }
+  .fxb__cta span {
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: #1faa47;
+    line-height: 1;
   }
   .fxb__cta:hover {
     transform: translateX(3px);
@@ -1098,20 +1116,26 @@ const values = [
       display: none;
     }
     .fxb__kicker {
-      gap: 0.25rem;
+      gap: 0.2rem;
     }
     .fxb__kicker b {
-      font-size: 0.66rem;
-      padding: 0.1rem 0.45rem;
+      font-size: 0.82rem;
     }
     .fxb__sub {
       font-size: 0.74rem;
       line-height: 1.4;
     }
     .fxb__cta {
-      padding: 0.32rem 0.7rem;
-      font-size: 0.76rem;
+      padding: 0.3rem 0.6rem;
+      gap: 0.3rem;
+      border-width: 1.5px;
       box-shadow: none;
+    }
+    .fxb__cta img {
+      height: 11px;
+    }
+    .fxb__cta span {
+      font-size: 0.74rem;
     }
     .hero__wrap {
       padding: 1.6rem 1.2rem 1.4rem;
