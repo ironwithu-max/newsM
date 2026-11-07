@@ -158,9 +158,9 @@ const values = [
           <span>바로가기 →</span>
         </a>
         <div class="fxb__text">
-          <p class="fxb__line1">생활 속 작은 고장부터 급한 수리까지 미남테크 집수리 서비스</p>
+          <p class="fxb__line1">생활 속 작은 고장부터 급한 수리까지<span class="fxb__pc"> 미남테크 집수리 서비스</span></p>
           <a class="fxb__line2" href="/blog/2026-07-29-fixhome-partner-recruit/">
-            <b class="o">생활수리</b><i>·</i><b class="g">긴급수리</b> 각 분야 전문 기사님을 모십니다.<span class="fxb__enter" aria-hidden="true">↵</span>
+            <b class="o">생활수리</b><i>·</i><b class="g">긴급수리</b><span class="fxb__pc"> 각 분야 전문 기사님을 모십니다.</span><span class="fxb__mo"> 전문 기사님 모집</span><span class="fxb__enter" aria-hidden="true">↵</span>
           </a>
         </div>
       </div>
@@ -649,19 +649,27 @@ const values = [
   .fxb__text {
     min-width: 0;
     display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0 1.1rem;
+    white-space: nowrap;
     word-break: keep-all;
+  }
+  .fxb__mo {
+    display: none;
   }
   .fxb__line1 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-weight: 700;
     color: var(--ink);
     line-height: 1.35;
   }
   .fxb__line2 {
-    font-size: 0.88rem;
+    font-size: 0.86rem;
+    flex: 0 0 auto;
     font-weight: 600;
     color: #5f574f;
     text-decoration: none;
@@ -1084,11 +1092,23 @@ const values = [
     .fxb__go span {
       font-size: 0.74rem;
     }
+    .fxb__text {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.1rem;
+    }
+    .fxb__pc {
+      display: none;
+    }
+    .fxb__mo {
+      display: inline;
+    }
     .fxb__line1 {
-      font-size: 0.76rem;
+      font-size: 0.78rem;
+      max-width: 100%;
     }
     .fxb__line2 {
-      font-size: 0.72rem;
+      font-size: 0.76rem;
     }
     .hero__wrap {
       padding: 1.6rem 1.2rem 1.4rem;
