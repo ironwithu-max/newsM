@@ -157,7 +157,7 @@ const values = [
         <span class="fxb__text">
           <span class="fxb__kicker"><b>생활수리</b><b>긴급수리</b></span>
           <strong class="fxb__title">집수리의 모든 것, <em>픽스홈</em></strong>
-          <span class="fxb__sub">생활 속 작은 고장부터 급한 수리까지 — 미남테크가 운영하는 집수리 서비스</span>
+          <span class="fxb__sub"><span class="fxb__sub-long">생활 속 작은 고장부터 급한 수리까지 — 미남테크가 운영하는 집수리 서비스</span><span class="fxb__sub-short">생활 속 작은 고장부터 긴급 수리까지</span></span>
         </span>
         <span class="fxb__cta"><span class="fxb__cta-word">픽스홈 </span>바로가기 →</span>
       </div>
@@ -679,6 +679,9 @@ const values = [
   .fxb__title {
     white-space: nowrap;
   }
+  .fxb__sub-short {
+    display: none;
+  }
   .fxb__cta {
     flex: 0 0 auto;
     padding: 0.45rem 1.1rem;
@@ -1070,38 +1073,60 @@ const values = [
     .proc {
       grid-template-columns: 1fr;
     }
-    /* 휴대폰: 픽스홈 배너를 한 줄로 납작하게 */
+    /* 휴대폰: 왼쪽 로고(두 줄 높이) | 1줄: 생활수리·긴급수리 + 바로가기 | 2줄: 설명 */
     .fxb__wrap {
-      gap: 0.55rem;
-      padding: 0.45rem 0.9rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        'logo kicker cta'
+        'logo sub sub';
+      align-items: center;
+      gap: 0.3rem 0.5rem;
+      padding: 0.5rem 0.8rem;
+    }
+    .fxb__text {
+      display: contents;
     }
     .fxb__logo {
-      padding: 0.15rem 0.35rem;
+      grid-area: logo;
+      align-self: stretch;
+      padding: 0.25rem 0.4rem;
       border-radius: 8px;
     }
     .fxb__logo img {
-      height: 24px;
+      height: 38px;
     }
-    .fxb__text {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.1rem;
+    .fxb__kicker {
+      grid-area: kicker;
+    }
+    .fxb__kicker {
+      gap: 0.25rem;
     }
     .fxb__kicker b {
-      font-size: 0.62rem;
-      padding: 0.05rem 0.4rem;
+      font-size: 0.66rem;
+      padding: 0.1rem 0.45rem;
+      white-space: nowrap;
     }
-    .fxb__title {
-      font-size: 0.9rem;
-    }
-    .fxb__sub,
-    .fxb__cta-word {
+    .fxb__title,
+    .fxb__sub-long {
       display: none;
     }
+    .fxb__sub {
+      grid-area: sub;
+      font-size: 0.76rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fxb__sub-short {
+      display: inline;
+    }
     .fxb__cta {
-      padding: 0.4rem 0.75rem;
-      font-size: 0.78rem;
+      grid-area: cta;
+      padding: 0.32rem 0.7rem;
+      font-size: 0.76rem;
       box-shadow: none;
+      white-space: nowrap;
     }
     .hero__wrap {
       padding: 1.6rem 1.2rem 1.4rem;
