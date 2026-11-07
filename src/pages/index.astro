@@ -4,15 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import WorkCard from '../components/WorkCard.astro';
 import ConsultForm from '../components/ConsultForm.astro';
 import { COMPANY } from '../consts';
-import { listAllPublished, mixWorks, shuffle, toCard, FALLBACK_WORKS, PUBLIC_CACHE } from '../lib/works';
-
-const stats = [
-  { num: '12+', label: '건축·인테리어 경력(년)' },
-  { num: '350+', label: '주요 공사 프로젝트' },
-  { num: '650+', label: '누적 계약 건수' },
-  { num: '95%', label: '재의뢰·계약연장률' },
-  { num: '100%', label: '프로젝트 완수율' },
-];
+import { listAllPublished, mixWorks, shuffle, toCard, boardOf, FALLBACK_WORKS, PUBLIC_CACHE } from '../lib/works';
 
 const business = [
   {
@@ -65,8 +57,9 @@ const strengths = [
 
 // 시공사례: 게시판 전체 글을 아파트·상업공간·학원·주간보호가 번갈아 나오게 섞어 앞 8건. 없으면 기본 사진.
 const allWorks = await listAllPublished();
-const works = allWorks.length ? mixWorks(allWorks).slice(0, 8).map(toCard) : FALLBACK_WORKS;
-// 첫 화면 슬라이드: 전체 시공사례 대표사진을 무작위 순서로 (5초마다 전환)
+const interiorWorks = allWorks.filter((w) => boardOf(w) === 'interior');
+const works = interiorWorks.length ? mixWorks(interiorWorks).slice(0, 8).map(toCard) : FALLBACK_WORKS;
+// 첫 화면 슬라이드: 전체 시공사례(실내건축 + 건축공사) 대표사진을 무작위 순서로 (5초마다 전환)
 const slides = allWorks.length ? shuffle(allWorks).map(toCard) : FALLBACK_WORKS;
 Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
 
@@ -157,18 +150,18 @@ const values = [
       }
     </div>
 
-    <div class="hero__stats-bar">
-      <div class="hero__stats">
-        {
-          stats.map((s) => (
-            <div class="hstat">
-              <span class="hstat__num">{s.num}</span>
-              <span class="hstat__label">{s.label}</span>
-            </div>
-          ))
-        }
+    <!-- 픽스홈 배너 (미남테크가 운영하는 집수리 서비스) -->
+    <a class="fxb" href="https://fixhome.ai.kr/" target="_blank" rel="noopener">
+      <div class="fxb__wrap">
+        <span class="fxb__logo"><img src="/images/fixhome-logo.png" alt="픽스홈 FIXHOME" width="159" height="60" /></span>
+        <span class="fxb__text">
+          <span class="fxb__kicker"><b>생활수리</b><b>긴급수리</b></span>
+          <strong class="fxb__title">집수리의 모든 것, <em>픽스홈</em></strong>
+          <span class="fxb__sub">생활 속 작은 고장부터 급한 수리까지 — 미남테크가 운영하는 집수리 서비스</span>
+        </span>
+        <span class="fxb__cta">픽스홈 바로가기 →</span>
       </div>
-    </div>
+    </a>
   </section>
   <!-- ───────── 사업분야 ───────── -->
   <section id="business" class="sec sec--first">
@@ -440,7 +433,7 @@ const values = [
     position: relative;
     max-width: 1080px;
     margin: 0 auto;
-    padding: 1.3rem 1.2rem 1.1rem;
+    padding: 1rem 1.2rem 0.9rem;
     display: grid;
     grid-template-columns: 1.05fr 1fr;
     gap: 2.2rem;
@@ -490,7 +483,7 @@ const values = [
   /* 시공사례 대표사진 슬라이드 */
   .hero__media {
     position: relative;
-    aspect-ratio: 2 / 1;
+    aspect-ratio: 2.2 / 1;
     border-radius: 16px;
     overflow: hidden;
     background: #2a2420;
@@ -608,35 +601,97 @@ const values = [
     }
   }
 
-  /* 실적 숫자 — 한 줄 띠 */
-  .hero__stats-bar {
+  /* 픽스홈 배너 */
+  .fxb {
     position: relative;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(0, 0, 0, 0.18);
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+    background: linear-gradient(90deg, #fff6ec 0%, #ffffff 45%, #eefaf0 100%);
+    border-top: 3px solid transparent;
+    border-image: linear-gradient(90deg, #ff6a00, #f7a81b 40%, #7cc520 65%, #1faa47) 1;
   }
-  .hero__stats {
+  .fxb__wrap {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 0.5rem 1.2rem;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    padding: 0.4rem 1.2rem;
+    display: flex;
+    align-items: center;
     gap: 1rem;
   }
-  .hstat {
+  .fxb__logo {
+    flex: 0 0 auto;
     display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(31, 170, 71, 0.12);
   }
-  .hstat__num {
-    font-size: 1.2rem;
+  .fxb__logo img {
+    display: block;
+    height: 32px;
+    width: auto;
+    border-radius: 0;
+  }
+  .fxb__text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .fxb__kicker {
+    display: flex;
+    gap: 0.3rem;
+  }
+  .fxb__kicker b {
+    font-size: 0.74rem;
     font-weight: 800;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
     color: #fff;
+    background: #ff6a00;
+  }
+  .fxb__kicker b + b {
+    background: #1faa47;
+  }
+  .fxb__title {
+    font-size: 1.15rem;
+    font-weight: 800;
     letter-spacing: -0.02em;
   }
-  .hstat__label {
-    font-size: 0.78rem;
-    color: #a89f92;
-    line-height: 1.35;
+  .fxb__title em {
+    font-style: normal;
+    background: linear-gradient(90deg, #ff6a00, #1faa47);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .fxb__sub {
+    min-width: 0;
+    font-size: 0.84rem;
+    color: #6b625a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fxb__title {
+    white-space: nowrap;
+  }
+  .fxb__cta {
+    flex: 0 0 auto;
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #fff;
+    background: linear-gradient(90deg, #ff6a00, #1faa47);
+    box-shadow: 0 6px 16px rgba(255, 106, 0, 0.25);
+    transition: transform 0.15s;
+  }
+  .fxb:hover .fxb__cta {
+    transform: translateX(3px);
   }
 
   /* 첫 화면에 사업분야 + 시공사례 첫 줄까지 보이도록 촘촘하게 */
@@ -996,10 +1051,6 @@ const values = [
       grid-template-columns: 1fr;
       gap: 1.4rem;
     }
-    .hero__stats {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.6rem 1rem;
-    }
     .about,
     .contact {
       grid-template-columns: 1fr;
@@ -1019,19 +1070,33 @@ const values = [
     .proc {
       grid-template-columns: 1fr;
     }
-    .hero__stats {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.6rem;
+    .fxb__text {
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.15rem 0.6rem;
     }
-    .hstat {
-      flex-direction: column;
-      gap: 0;
+    .fxb__sub {
+      flex-basis: 100%;
+      white-space: normal;
     }
-    .hstat__num {
-      font-size: 1.2rem;
+    .fxb__wrap {
+      flex-wrap: wrap;
+      gap: 0.6rem 0.8rem;
+      padding: 0.7rem 1.2rem 0.8rem;
     }
-    .hstat__label {
-      font-size: 0.72rem;
+    .fxb__logo img {
+      height: 34px;
+    }
+    .fxb__title {
+      font-size: 1.02rem;
+    }
+    .fxb__sub {
+      font-size: 0.78rem;
+    }
+    .fxb__cta {
+      flex-basis: 100%;
+      text-align: center;
+      padding: 0.55rem 1rem;
     }
     .hero__wrap {
       padding: 1.6rem 1.2rem 1.4rem;

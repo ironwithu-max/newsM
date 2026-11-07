@@ -1,0 +1,592 @@
+---
+// 협력사 상세 — 회사개요 · 연혁 · 경영이념 · 면허 · 기술인력 · 실적 · 시공 사진
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COMPANY } from '../../consts';
+import { PARTNERS, getPartner } from '../../partners';
+
+export function getStaticPaths() {
+  return PARTNERS.map((p) => ({ params: { slug: p.slug } }));
+}
+const p = getPartner(Astro.params.slug!)!;
+const photos = p.photos || [];
+const hasRender = photos.some((ph) => ph.render);
+---
+
+<BaseLayout title={`${p.name} | 협력사`} description={`${COMPANY.brandName} 협력사 ${p.name} — ${p.summary}`} image={photos[0]?.src} wide={true}>
+  <section class="dhero">
+    <div class="dhero__wrap">
+      <p class="crumb"><a href="/">홈</a> <span>/</span> <a href="/partners">협력사</a> <span>/</span> {p.name}</p>
+      <div class="dhero__row">
+        {p.logo && <div class="dhero__logo"><img src={p.logo} alt="" /></div>}
+        <div>
+          <span class="dhero__tag">협력사 · {p.field}</span>
+          <h1 class="dhero__title">{p.name}</h1>
+          {p.nameEn && <p class="dhero__en">{p.nameEn}</p>}
+          {p.slogan && <p class="dhero__slogan">“{p.slogan}”</p>}
+        </div>
+      </div>
+      <p class="dhero__lead">{p.summary}</p>
+    </div>
+  </section>
+
+  <nav class="toc" aria-label="목차">
+    <div class="toc__wrap">
+      <a href="#overview">회사개요</a>
+      {p.history && <a href="#history">연혁</a>}
+      {(p.mind || p.mottos) && <a href="#mind">경영이념</a>}
+      {p.licenses && <a href="#license">면허·등록</a>}
+      {p.staff && <a href="#staff">기술인력</a>}
+      {p.records && <a href="#records">공사실적</a>}
+      {photos.length > 0 && <a href="#photos">시공 사진</a>}
+    </div>
+  </nav>
+
+  <div class="body">
+    <section id="overview" class="blk">
+      <h2 class="blk__title">회사개요</h2>
+      <dl class="ov">
+        {p.overview.map((o) => (
+          <div><dt>{o.label}</dt><dd>{o.value}</dd></div>
+        ))}
+        {p.contact?.tel && <div><dt>대표전화</dt><dd><a href={`tel:${p.contact.tel}`}>{p.contact.tel}</a>{p.contact.fax && ` · 팩스 ${p.contact.fax}`}</dd></div>}
+      </dl>
+    </section>
+
+    {
+      p.history && (
+        <section id="history" class="blk">
+          <h2 class="blk__title">회사연혁</h2>
+          <ol class="tl">
+            {p.history.map((h) => (
+              <li>
+                <span class="tl__year">{h.year}</span>
+                <ul>{h.items.map((it) => <li>{it}</li>)}</ul>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
+      (p.mind || p.mottos) && (
+        <section id="mind" class="blk">
+          <h2 class="blk__title">경영이념</h2>
+          {p.mottos && (
+            <ul class="mottos">{p.mottos.map((m) => <li>{m}</li>)}</ul>
+          )}
+          {p.mind && (
+            <div class="mind">
+              {p.mind.map((m) => (
+                <article><h3>{m.title}</h3><p>{m.desc}</p></article>
+              ))}
+            </div>
+          )}
+          {p.organization && (
+            <div class="org">
+              <h3>조직 구성</h3>
+              <ul>{p.organization.map((o) => <li>{o}</li>)}</ul>
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    {
+      p.licenses && (
+        <section id="license" class="blk">
+          <h2 class="blk__title">건설업 면허 및 등록</h2>
+          <ul class="lic">
+            {p.licenses.map((l) => (
+              <li><b>{l.name}</b>{l.no && <span>{l.no}</span>}{l.issued && <span>{l.issued}</span>}</li>
+            ))}
+          </ul>
+          {p.certificates && (
+            <div class="certs">
+              {p.certificates.map((c) => (
+                <a href={c.src} target="_blank" rel="noopener" class="cert">
+                  <img src={c.src} alt={c.title} loading="lazy" />
+                  <span>{c.title}</span>
+                </a>
+              ))}
+            </div>
+          )}
+          <p class="note">※ 증명서의 등록번호·연락처·직인 등 일부 정보는 보호를 위해 가렸습니다.</p>
+        </section>
+      )
+    }
+
+    {
+      p.staff && (
+        <section id="staff" class="blk">
+          <h2 class="blk__title">건설기술인력 <small>{p.staff.total}명</small></h2>
+          <p class="muted">{p.staff.detail}</p>
+          {p.staff.list && (
+            <div class="tbl">
+              <table>
+                <thead><tr><th>순번</th><th>성명</th><th>입사</th><th>기술분야 · 등급</th></tr></thead>
+                <tbody>
+                  {p.staff.list.map((s, i) => (
+                    <tr><td>{i + 1}</td><td>{s.name}</td><td>{s.joined}</td><td>{s.grade}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p class="note">※ 개인정보 보호를 위해 성명 일부와 자격 회원번호는 공개하지 않습니다.</p>
+        </section>
+      )
+    }
+
+    {
+      p.records && (
+        <section id="records" class="blk">
+          <h2 class="blk__title">주요 공사실적 <small>{p.records.total}</small></h2>
+          <ul class="rec">{p.records.highlights.map((r) => <li>{r}</li>)}</ul>
+        </section>
+      )
+    }
+
+    {
+      photos.length > 0 && (
+        <section id="photos" class="blk">
+          <h2 class="blk__title">시공 사진 <small>{photos.length}점</small></h2>
+          {hasRender && <p class="muted">‘조감도’ 표시는 완공 예상도입니다.</p>}
+          <div class="gal">
+            {photos.map((ph) => (
+              <a href={ph.src} target="_blank" rel="noopener" class="gal__item">
+                <img src={ph.src} alt={ph.caption} loading="lazy" />
+                {ph.render && <span class="gal__badge">조감도</span>}
+                <span class="gal__cap">{ph.caption}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <div class="cta">
+      <p>신축·증축 등 건축공사 상담은 {COMPANY.brandName}에 편하게 문의하세요.</p>
+      <div class="cta__btns">
+        <a href="/consult" class="btn btn--primary">상담문의 하기</a>
+        <a href="/partners" class="btn btn--line">협력사 목록</a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .dhero {
+    background:
+      radial-gradient(900px 400px at 85% -20%, rgba(163, 93, 58, 0.3), transparent 60%),
+      var(--ink);
+    color: #ece5db;
+  }
+  .dhero__wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2.2rem 1.2rem 2.4rem;
+  }
+  .crumb {
+    font-size: 0.85rem;
+    color: #a89f92;
+    margin: 0 0 1.2rem;
+  }
+  .crumb a {
+    color: #cdc3b4;
+    text-decoration: none;
+  }
+  .crumb span {
+    margin: 0 0.35rem;
+    opacity: 0.5;
+  }
+  .dhero__row {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+  }
+  .dhero__logo {
+    width: 150px;
+    aspect-ratio: 16 / 10;
+    background: #fff;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem;
+  }
+  .dhero__logo img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+  .dhero__tag {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #d9a985;
+  }
+  .dhero__title {
+    margin: 0.2rem 0 0;
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .dhero__en {
+    margin: 0.1rem 0 0;
+    font-size: 0.82rem;
+    color: #a89f92;
+    letter-spacing: 0.05em;
+  }
+  .dhero__slogan {
+    margin: 0.4rem 0 0;
+    color: #e3b48f;
+    font-weight: 600;
+  }
+  .dhero__lead {
+    margin: 1.2rem 0 0;
+    max-width: 48rem;
+    color: #cdc3b4;
+  }
+  .toc {
+    position: sticky;
+    top: 64px;
+    z-index: 5;
+    background: color-mix(in srgb, var(--bg) 94%, transparent);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+  }
+  .toc__wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0.5rem 1.2rem;
+    display: flex;
+    gap: 0.3rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .toc a {
+    flex: 0 0 auto;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .toc a:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .body {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 1rem 1.2rem 3.5rem;
+  }
+  .blk {
+    padding: 2rem 0 1rem;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 120px;
+  }
+  .blk__title {
+    margin: 0 0 1rem;
+    font-size: 1.35rem;
+  }
+  .blk__title small {
+    font-size: 0.9rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-left: 0.4rem;
+  }
+  .muted {
+    color: var(--muted);
+    margin: -0.4rem 0 1rem;
+    font-size: 0.93rem;
+  }
+  .note {
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin: 0.8rem 0 0;
+  }
+  .ov {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    margin: 0;
+    border-top: 2px solid var(--ink);
+  }
+  .ov div {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .ov dt {
+    padding: 0.75rem 0.9rem;
+    background: var(--bg-soft);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .ov dd {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+  }
+  .ov a {
+    color: var(--accent);
+  }
+  .tl {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 2px solid var(--accent-soft);
+  }
+  .tl > li {
+    position: relative;
+    padding: 0 0 1.1rem 1.4rem;
+  }
+  .tl > li::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 0.35rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+  .tl__year {
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .tl ul {
+    margin: 0.2rem 0 0;
+    padding-left: 1rem;
+  }
+  .mottos {
+    list-style: none;
+    margin: 0 0 1.2rem;
+    padding: 0;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .mottos li {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .mind {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  .mind article {
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .mind h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.02rem;
+    color: var(--accent);
+  }
+  .mind p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .org {
+    margin-top: 1.2rem;
+  }
+  .org h3 {
+    font-size: 1rem;
+    margin: 0 0 0.5rem;
+  }
+  .org ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--muted);
+  }
+  .lic {
+    list-style: none;
+    margin: 0 0 1.2rem;
+    padding: 0;
+  }
+  .lic li {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    background: var(--bg-soft);
+  }
+  .lic span {
+    color: var(--muted);
+  }
+  .certs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 260px));
+    gap: 1rem;
+  }
+  .cert {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--fg);
+    background: #fff;
+  }
+  .cert img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1.38;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 0;
+  }
+  .cert span {
+    display: block;
+    padding: 0.55rem 0.8rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border);
+  }
+  .tbl {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    border-top: 2px solid var(--ink);
+  }
+  th,
+  td {
+    padding: 0.6rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    background: var(--bg-soft);
+    font-size: 0.85rem;
+  }
+  td:first-child,
+  th:first-child {
+    width: 3.5rem;
+    text-align: center;
+    color: var(--muted);
+  }
+  .rec {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+  .rec li {
+    margin-bottom: 0.5rem;
+  }
+  .gal {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.8rem;
+  }
+  .gal__item {
+    position: relative;
+    display: block;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-soft);
+    text-decoration: none;
+  }
+  .gal__item img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 0;
+    transition: transform 0.3s;
+  }
+  .gal__item:hover img {
+    transform: scale(1.04);
+  }
+  .gal__badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(28, 25, 23, 0.7);
+    color: #fff;
+  }
+  .gal__cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1.4rem 0.7rem 0.55rem;
+    background: linear-gradient(0deg, rgba(20, 17, 15, 0.78), transparent);
+    color: #fff;
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+  .cta {
+    margin-top: 2.4rem;
+    padding: 1.6rem 1.8rem;
+    border-radius: 16px;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .cta p {
+    margin: 0;
+    font-weight: 600;
+  }
+  .cta__btns {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+  }
+  .btn--primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn--line {
+    border-color: var(--border);
+    color: var(--fg);
+    background: #fff;
+  }
+  @media (max-width: 860px) {
+    .ov {
+      grid-template-columns: 1fr;
+    }
+    .mind {
+      grid-template-columns: 1fr;
+    }
+    .gal {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 480px) {
+    .ov div {
+      grid-template-columns: 6.5rem 1fr;
+    }
+  }
+</style>

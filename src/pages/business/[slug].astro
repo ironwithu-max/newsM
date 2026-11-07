@@ -76,18 +76,26 @@ const others = SERVICES.filter((s) => s.slug !== service.slug);
           <p class="eyebrow">PORTFOLIO</p>
           <h2 class="stitle">관련 시공사례</h2>
           <div class="dwork-grid">
-            {service.works.map((w) => (
-              <figure class="dwork">
-                <img src={w.img} alt={w.label} width="1200" height="900" loading="lazy" />
-                <figcaption>
-                  <span class="dwork__tag">{w.tag}</span>
-                  <span class="dwork__label">{w.label}</span>
-                </figcaption>
-              </figure>
-            ))}
+            {service.works.map((w) => {
+              const Tag = w.href ? 'a' : 'figure';
+              return (
+                <Tag class="dwork" {...(w.href ? { href: w.href } : {})}>
+                  <img src={w.img} alt={w.label} width="1200" height="900" loading="lazy" />
+                  <span class="dwork__cap">
+                    <span class="dwork__tag">{w.tag}</span>
+                    <span class="dwork__label">{w.label}</span>
+                  </span>
+                </Tag>
+              );
+            })}
           </div>
+          {service.slug === 'architecture' && (
+            <p class="pw-lead">신축·증축 등 건축공사는 협력사 <a href="/partners/hiwon">하이원종합건설㈜</a>와 함께 진행합니다. ‘협력사 시공’은 협력사의 시공 사례이며, ‘조감도’는 완공 예상도입니다.</p>
+          )}
           <p class="more">
-            더 많은 사례는 <a href={COMPANY.blog} target="_blank" rel="noopener">네이버 블로그</a>에서 확인하세요.
+            <a href={service.slug === 'architecture' ? '/works?board=arch' : '/works'}>
+              {service.slug === 'architecture' ? '건축공사' : '실내건축'} 시공사례 전체 보기 →
+            </a>
           </p>
         </div>
       </section>
@@ -364,11 +372,19 @@ const others = SERVICES.filter((s) => s.slug !== service.slug);
     gap: 1rem;
   }
   .dwork {
+    display: block;
     margin: 0;
     border: 1px solid var(--border);
     border-radius: 14px;
     overflow: hidden;
     background: var(--bg);
+    color: var(--fg);
+    text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  a.dwork:hover {
+    border-color: var(--accent);
+    box-shadow: 0 12px 30px rgba(33, 29, 26, 0.1);
   }
   .dwork img {
     display: block;
@@ -377,7 +393,7 @@ const others = SERVICES.filter((s) => s.slug !== service.slug);
     object-fit: cover;
     border-radius: 0;
   }
-  .dwork figcaption {
+  .dwork__cap {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
@@ -396,6 +412,11 @@ const others = SERVICES.filter((s) => s.slug !== service.slug);
     margin: 1.4rem 0 0;
     color: var(--muted);
     font-size: 0.95rem;
+  }
+  .more a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
   }
 
   /* 진행 절차 */
@@ -560,5 +581,14 @@ const others = SERVICES.filter((s) => s.slug !== service.slug);
     .dproc {
       grid-template-columns: 1fr;
     }
+  }
+  .pw-lead {
+    margin: 1rem 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .pw-lead a {
+    color: var(--accent);
+    font-weight: 700;
   }
 </style>

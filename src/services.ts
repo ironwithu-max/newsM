@@ -6,6 +6,8 @@ export interface ServiceWork {
   img: string;
   label: string;
   tag: string;
+  /** 누르면 이동할 곳 (시공사례 상세 등) */
+  href?: string;
 }
 export interface ServiceFeature {
   title: string;
@@ -60,8 +62,14 @@ export const SERVICES: Service[] = [
     ],
     steps: STEPS_DEFAULT,
     works: [
-      { img: '/images/works/unicity-academy.webp', label: '유니시티 학원', tag: '교육·근생' },
-      { img: '/images/works/chicken-pub.webp', label: '청춘튀겨 치킨펍', tag: '상업 건축' },
+      { img: '/images/partners/hiwon/works/32.webp', label: '장전동 지온병원', tag: '병원 · 협력사 시공', href: '/works/84b02da0-7602-412f-80cc-b51ca95c99ad' },
+      { img: '/images/partners/hiwon/works/30.webp', label: '연산동 서호병원 신축공사', tag: '병원 · 협력사 시공 · 조감도', href: '/partners/hiwon#photos' },
+      { img: '/images/partners/hiwon/works/28.webp', label: '하단 서호병원', tag: '병원 · 협력사 시공', href: '/works/2554b25f-4fe0-4e14-8ae1-6e4f667df77f' },
+      { img: '/images/partners/hiwon/works/23.webp', label: '김해한솔병원 신관', tag: '병원 · 협력사 시공', href: '/works/f2dc4624-e076-4c91-9260-3bd27dae3fef' },
+      { img: '/images/partners/hiwon/works/33.webp', label: '장전동 에스원메디컬 신축공사', tag: '의료 · 협력사 시공', href: '/works/84a39425-7fc2-49ab-9acc-818da60600f2' },
+      { img: '/images/partners/hiwon/works/43.webp', label: '영남냉장(주) 아이스크림공장 신축공사', tag: '공장 · 협력사 시공', href: '/works/bf3cbc8c-3863-403d-b420-27c8dd7b9a73' },
+      { img: '/images/partners/hiwon/works/29.webp', label: '광안동 주상복합', tag: '주상복합 · 협력사 시공', href: '/works/bd60db85-e8c1-4ac7-a8eb-8ba8f0d9b484' },
+      { img: '/images/partners/hiwon/works/14.webp', label: '통영 상수도사업소', tag: '공공시설 · 협력사 시공', href: '/works/820fd41c-e0fe-4891-b52a-eb4bdbf96dba' },
     ],
     faq: [
       { q: '설계도면 없이도 상담이 가능한가요?', a: '네, 대략적인 구상만 있어도 현장 조사와 상담을 통해 계획과 견적을 함께 잡아드립니다.' },
@@ -91,10 +99,14 @@ export const SERVICES: Service[] = [
     ],
     steps: STEPS_DEFAULT,
     works: [
-      { img: '/images/works/jinhae-gs-living.webp', label: '진해 GS자이 아파트', tag: '주거공간' },
-      { img: '/images/works/tongyeong-kitchen.webp', label: '통영 일성유수안 주방', tag: '주거공간' },
-      { img: '/images/works/rehouse-showroom.webp', label: '동부산 한샘리하우스 전시관', tag: '전시·쇼룸' },
-      { img: '/images/works/sangnam-bath.webp', label: '상남 꿈에그린 욕실', tag: '욕실 리모델링' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791780186787-o7ft2k.webp', label: '진해 GS자이 103동 리모델링', tag: '아파트 리모델링', href: '/works/b999930b-24ae-4d5f-965c-6b262406b44d' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791778846734-hf3jye.webp', label: '마산 마린파이브 34평 리모델링', tag: '아파트 리모델링', href: '/works/296d78a9-6822-4cdb-8db3-0a546b1b9950' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791778745438-icmpjw.webp', label: '창원 동정동 무학아파트 32평 리모델링', tag: '아파트 리모델링', href: '/works/5f9fd2ba-cb91-4953-9b57-f791ebd0fe48' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791774309324-rud4if.webp', label: '창원 트리비앙 아파트 34평형 리모델링', tag: '아파트 리모델링', href: '/works/aa9165d7-521f-40c1-a36c-36bee07387d9' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1793167038931-6hbt7q.webp', label: '마산 린뷰티샾', tag: '상업공간', href: '/works/36ae9e88-c555-4aeb-898c-6b4f7fcf6004' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1793167701532-5qxp51.webp', label: '창원 상남동 트렌디카 안경원', tag: '상업공간', href: '/works/01349ed5-6126-40d3-9f68-118631a77845' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1793167295947-izmj6h.webp', label: '창원 대방동 링키 영어학원', tag: '학원·교육', href: '/works/f5f28ee7-3512-4cd4-84a1-23e6efca2508' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1793927795115-vf6j6u.webp', label: '부산 금정 내사랑 주간보호센터 인테리어', tag: '주간보호센터', href: '/works/6db2c89c-40f7-4f4b-b5df-e20a7c153779' },
     ],
     faq: [
       { q: '거주하면서 부분 시공만 할 수 있나요?', a: '욕실·주방 등 부분 시공도 가능하며, 생활 불편을 최소화하도록 일정을 조율합니다.' },
@@ -123,7 +135,12 @@ export const SERVICES: Service[] = [
       { title: '안전·효율 우선 설계', desc: '안정성과 에너지 효율을 함께 고려한 전기 시스템을 구축합니다.' },
     ],
     steps: STEPS_DEFAULT,
-    works: [],
+    works: [
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791790577987-mjs7w6.webp', label: '창원 힐링파크골프', tag: '조명·전기 공사', href: '/works/6810d9ca-9309-4751-8d70-d5fdc9f5b59c' },
+      { img: '/images/works/open-kitchen.webp', label: '오픈키친 다이닝 레스토랑', tag: '조명·전기 공사', href: '/works/851875b9-a616-44bd-b058-239e5c88e6d7' },
+      { img: '/images/works/lounge-pub.webp', label: '다크그린 라운지 펍', tag: '조명·전기 공사', href: '/works/ab0ac7c0-070c-47e2-b622-2d831fcb5eab' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791775223999-fif7qw.webp', label: '창원 남산동 퇴근길 술한잔', tag: '조명·전기 공사', href: '/works/953f85a5-c7bc-4b6e-8758-82dec098b9a4' },
+    ],
     faq: [
       { q: '실내건축과 전기공사를 함께 맡길 수 있나요?', a: '네, 인테리어와 전기공사를 한 곳에서 통합 진행해 공정과 책임을 일원화할 수 있습니다.' },
       { q: '노후 전기 설비 점검·교체도 하나요?', a: '분전반·배선 등 노후 설비 점검과 교체, 안전 진단을 함께 진행합니다.' },
@@ -152,7 +169,11 @@ export const SERVICES: Service[] = [
       { title: '친환경·지속가능', desc: '빠르게 성장하는 전기차 시장에 맞춘 지속 가능한 모빌리티 솔루션.' },
     ],
     steps: STEPS_DEFAULT,
-    works: [],
+    works: [
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791778464921-yhegj1.webp', label: 'LG볼트업 충전기 시공', tag: '전기차 충전기', href: '/works/1017ec9b-ee70-49bc-a3a8-d94b7bd0c453' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791778538273-otkdro.webp', label: 'GS차지비 충전기 설치 공사', tag: '전기차 충전기', href: '/works/7013efa7-960a-41e4-8a7e-60987c7494ff' },
+      { img: 'https://euwbfvckjpwemxlukgyz.supabase.co/storage/v1/object/public/works/works/1791778505270-glrk43.webp', label: 'SK일렉링크 충전기 설치 공사', tag: '전기차 충전기', href: '/works/abd0474d-d4db-47a3-8e2b-c8437491c019' },
+    ],
     faq: [
       { q: '아파트 단지에도 설치할 수 있나요?', a: '단지 전기 용량과 주차 여건을 진단해 완속·급속 충전 인프라를 구축합니다.' },
       { q: '설치 보조금 신청도 도와주나요?', a: '설치 보조금 신청에 필요한 절차를 함께 지원해 드립니다.' },

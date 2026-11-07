@@ -1,0 +1,247 @@
+---
+// 협력사 목록 — src/partners.ts 의 PARTNERS 를 카드로 보여줌
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COMPANY } from '../../consts';
+import { PARTNERS } from '../../partners';
+---
+
+<BaseLayout
+  title="협력사"
+  description={`${COMPANY.brandName}(${COMPANY.legalName})와 함께하는 협력사 — 종합건설·전문건설 파트너사의 회사 정보와 시공 실적을 소개합니다.`}
+  wide={true}
+>
+  <section class="phero">
+    <div class="phero__wrap">
+      <p class="crumb"><a href="/">홈</a> <span>/</span> 협력사</p>
+      <p class="phero__eyebrow">PARTNERS</p>
+      <h1 class="phero__title">협력사</h1>
+      <p class="phero__lead">
+        미남건축디자인은 검증된 협력사와 함께 설계부터 시공까지 책임 있게 진행합니다. 함께하는 파트너사를 소개합니다.
+      </p>
+    </div>
+  </section>
+
+  <section class="psec">
+    <div class="pwrap">
+      <div class="plist">
+        {
+          PARTNERS.map((p) => (
+            <a href={`/partners/${p.slug}`} class="pcard">
+              <div class="pcard__logo">{p.logo ? <img src={p.logo} alt={p.name} loading="lazy" /> : <span>{p.name.slice(0, 2)}</span>}</div>
+              <div class="pcard__body">
+                <span class="pcard__field">{p.field}</span>
+                <h2 class="pcard__name">{p.name}</h2>
+                {p.nameEn && <p class="pcard__en">{p.nameEn}</p>}
+                <p class="pcard__summary">{p.summary}</p>
+                <ul class="pcard__facts">
+                  {p.overview
+                    .filter((o) => ['건설업 등록', '시공능력평가액', '시공능력 순위'].includes(o.label))
+                    .map((o) => (
+                      <li><b>{o.label}</b>{o.value}</li>
+                    ))}
+                  {p.records && <li><b>공사실적</b>{p.records.total}</li>}
+                </ul>
+                <span class="pcard__go">회사 정보 · 시공 실적 보기 →</span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+
+      <div class="join">
+        <div>
+          <h2>협력사 등록 안내</h2>
+          <p>
+            종합건설·전문건설·자재 업체 등 함께할 협력사를 모시고 있습니다. 회사소개서(지명원)와 연락처를 남겨 주시면
+            검토 후 연락드리겠습니다.
+          </p>
+        </div>
+        <div class="join__btns">
+          <a href="/consult" class="btn btn--primary">협력사 등록 문의하기</a>
+          <a href={`tel:${COMPANY.tel}`} class="btn btn--line">☎ {COMPANY.tel}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .phero {
+    background:
+      radial-gradient(900px 400px at 85% -20%, rgba(163, 93, 58, 0.3), transparent 60%),
+      var(--ink);
+    color: #ece5db;
+  }
+  .phero__wrap,
+  .pwrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2.2rem 1.2rem 2.6rem;
+  }
+  .crumb {
+    font-size: 0.85rem;
+    color: #a89f92;
+    margin: 0 0 1rem;
+  }
+  .crumb a {
+    color: #cdc3b4;
+    text-decoration: none;
+  }
+  .crumb span {
+    margin: 0 0.35rem;
+    opacity: 0.5;
+  }
+  .phero__eyebrow {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #d9a985;
+    letter-spacing: 0.12em;
+  }
+  .phero__title {
+    margin: 0.3rem 0 0.5rem;
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .phero__lead {
+    margin: 0;
+    color: #cdc3b4;
+    max-width: 44rem;
+  }
+  .plist {
+    display: grid;
+    gap: 1.2rem;
+  }
+  .pcard {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1.6rem;
+    align-items: center;
+    padding: 1.6rem;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--bg);
+    color: var(--fg);
+    text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .pcard:hover {
+    border-color: var(--accent);
+    box-shadow: 0 12px 30px rgba(33, 29, 26, 0.08);
+  }
+  .pcard__logo {
+    aspect-ratio: 16 / 10;
+    border-radius: 14px;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2rem;
+  }
+  .pcard__logo img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    mix-blend-mode: multiply;
+  }
+  .pcard__logo span {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .pcard__field {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .pcard__name {
+    margin: 0.2rem 0 0;
+    font-size: 1.4rem;
+  }
+  .pcard__en {
+    margin: 0.1rem 0 0.6rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .pcard__summary {
+    margin: 0 0 0.8rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .pcard__facts {
+    list-style: none;
+    margin: 0 0 0.9rem;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    font-size: 0.88rem;
+  }
+  .pcard__facts b {
+    color: var(--muted);
+    font-weight: 600;
+    margin-right: 0.4rem;
+  }
+  .pcard__go {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.92rem;
+  }
+  .join {
+    margin-top: 2.4rem;
+    padding: 1.6rem 1.8rem;
+    border-radius: 16px;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .join h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1.15rem;
+  }
+  .join p {
+    margin: 0;
+    color: var(--muted);
+    max-width: 38rem;
+    font-size: 0.93rem;
+  }
+  .join__btns {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+  }
+  .btn--primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn--line {
+    border-color: var(--border);
+    color: var(--fg);
+    background: #fff;
+  }
+  @media (max-width: 720px) {
+    .pcard {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .pcard__logo {
+      max-width: 260px;
+    }
+  }
+</style>

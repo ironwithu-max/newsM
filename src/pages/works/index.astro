@@ -3,29 +3,36 @@ export const prerender = false;
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import WorkCard from '../../components/WorkCard.astro';
 import { COMPANY } from '../../consts';
-import { listAllPublished, mixWorks, groupOf, WORK_GROUPS, type WorkGroup, toCard, FALLBACK_WORKS, PUBLIC_CACHE } from '../../lib/works';
+import { listAllPublished, mixWorks, groupOf, boardOf, WORK_GROUPS, ARCH_GROUPS, BOARDS, type WorkGroup, type WorkBoard, toCard, FALLBACK_WORKS, PUBLIC_CACHE } from '../../lib/works';
 
 const PER_PAGE = 12;
+const boardParam = Astro.url.searchParams.get('board');
+const board: WorkBoard = boardParam === 'arch' ? 'arch' : 'interior';
+const GROUPS = board === 'arch' ? ARCH_GROUPS : WORK_GROUPS;
 const typeParam = Astro.url.searchParams.get('type') || '';
-const type = (WORK_GROUPS.some((g) => g.key === typeParam) ? typeParam : '') as WorkGroup | '';
+const type = (GROUPS.some((g) => g.key === typeParam) ? typeParam : '') as WorkGroup | '';
 const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') || '1', 10) || 1);
 
 // 전체: 아파트·상업공간·학원·주간보호가 번갈아 나오게 섞기 / 종류 선택: 그 종류만 (정렬 순서 → 최신순)
-const all = await listAllPublished();
+const everything = await listAllPublished();
+const all = everything.filter((w) => boardOf(w) === board);
+const boardCount = (b: WorkBoard) => everything.filter((w) => boardOf(w) === b).length;
 const filtered = type ? all.filter((w) => groupOf(w) === type) : mixWorks(all);
 const total = filtered.length;
 const pages = Math.max(1, Math.ceil(total / PER_PAGE));
 const items = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
 // 실제 글이 있는 종류만 버튼으로
-const groups = WORK_GROUPS.filter((g) => all.some((w) => groupOf(w) === g.key));
-const typeLabel = WORK_GROUPS.find((g) => g.key === type)?.label || '';
+const groups = GROUPS.filter((g) => all.some((w) => groupOf(w) === g.key));
+const typeLabel = GROUPS.find((g) => g.key === type)?.label || '';
+const boardLabel = BOARDS.find((b) => b.key === board)!.label;
 
-const useFallback = all.length === 0;
+const useFallback = everything.length === 0;
 const cards = useFallback ? FALLBACK_WORKS : items.map(toCard);
 
 const qs = (p: { tag?: string; page?: number }) => {
   const s = new URLSearchParams();
+  if (board === 'arch') s.set('board', 'arch');
   if (p.tag) s.set('type', p.tag);
   if (p.page && p.page > 1) s.set('page', String(p.page));
   const q = s.toString();
@@ -36,7 +43,7 @@ Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
 ---
 
 <BaseLayout
-  title={typeLabel ? `${typeLabel} 시공사례` : '시공사례'}
+  title={`${typeLabel || boardLabel} 시공사례`}
   description={`${COMPANY.brandName}(${COMPANY.legalName})의 실내건축·리모델링·전기공사 시공사례 모음. 주거공간, 상업공간, 전시·쇼룸 등 실제 현장 사진과 시공 내용을 확인하세요.`}
   wide={true}
 >
@@ -57,6 +64,18 @@ Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
 
   <section class="wsec">
     <div class="wwrap">
+      {
+        <nav class="boards" aria-label="게시판">
+          {BOARDS.map((b) => (
+            <a href={b.key === 'arch' ? '/works?board=arch' : '/works'} class:list={['board', { 'is-on': board === b.key }]}>
+              {b.label} <span>{boardCount(b.key)}</span>
+            </a>
+          ))}
+        </nav>
+      }
+      {board === 'arch' && (
+        <p class="arch-note">신축·증축 등 건축공사는 협력사 <a href="/partners/hiwon">하이원종합건설㈜</a>와 함께 진행합니다. ‘협력사 시공’ 표시는 협력사의 시공 사례입니다.</p>
+      )}
       {
         groups.length > 0 && (
           <nav class="filter" aria-label="분류">
@@ -186,6 +205,42 @@ Astro.response.headers.set('Cache-Control', PUBLIC_CACHE);
       border-top: 1px solid rgba(236, 229, 219, 0.25);
       text-align: left;
     }
+  }
+  .boards {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .board {
+    padding: 0.7rem 1.3rem;
+    margin-bottom: -2px;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-decoration: none;
+  }
+  .board span {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .board.is-on {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  .board.is-on span {
+    color: var(--accent);
+  }
+  .arch-note {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .arch-note a {
+    color: var(--accent);
+    font-weight: 700;
   }
   .filter {
     display: flex;

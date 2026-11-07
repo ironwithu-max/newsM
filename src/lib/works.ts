@@ -130,7 +130,7 @@ export function parseImages(raw: string): WorkImage[] {
     const u = String((it as any).url || '');
     const p = (it as any).path == null ? null : String((it as any).path);
     if (p !== null && (!sb || !/^works\/[\w.-]+$/.test(p) || u !== publicUrl(sb, p))) continue;
-    if (p === null && !/^\/images\/works\/[\w.-]+$/.test(u)) continue;
+    if (p === null && !/^\/images\/(works|partners\/[\w-]+\/works)\/[\w.-]+$/.test(u)) continue;
     out.push({ url: u, path: p });
   }
   return out.slice(0, 30);
@@ -167,7 +167,7 @@ export const toCard = (w: Work): WorkCardData => ({
   href: `/works/${w.id}`,
   img: coverOf(w),
   title: w.title,
-  tag: groupLabel(groupOf(w)),
+  tag: boardOf(w) === 'arch' ? `건축공사 · ${groupLabel(groupOf(w))}${isPartnerWork(w) ? ' · 협력사 시공' : ''}` : groupLabel(groupOf(w)),
   location: w.location,
   count: w.images.length,
 });
@@ -186,17 +186,41 @@ export const WORK_GROUPS = [
   { key: 'care', label: '주간보호·복지' },
   { key: 'ev', label: '전기차 충전' },
 ] as const;
-export type WorkGroup = (typeof WORK_GROUPS)[number]['key'];
+/** 건축공사 게시판 안의 종류 */
+export const ARCH_GROUPS = [
+  { key: 'a_factory', label: '공장·산업' },
+  { key: 'a_medical', label: '병원·의료' },
+  { key: 'a_housing', label: '주거·복합' },
+  { key: 'a_public', label: '공공·교육' },
+  { key: 'a_commercial', label: '근린·상업' },
+] as const;
+export type WorkGroup = (typeof WORK_GROUPS)[number]['key'] | (typeof ARCH_GROUPS)[number]['key'];
+
+/** 시공사례 게시판: 분류 칸이 '건축공사'면 건축공사, 나머지는 실내건축 */
+export const BOARDS = [
+  { key: 'interior', label: '실내건축' },
+  { key: 'arch', label: '건축공사' },
+] as const;
+export type WorkBoard = (typeof BOARDS)[number]['key'];
+export const boardOf = (w: Pick<Work, 'tag'>): WorkBoard => (w.tag === '건축공사' ? 'arch' : 'interior');
+export const isPartnerWork = (w: Pick<Work, 'location'>) => /협력사/.test(w.location || '');
 
 export function groupOf(w: Pick<Work, 'title' | 'tag'>): WorkGroup {
   const t = `${w.title} ${w.tag}`;
+  if (boardOf(w) === 'arch') {
+    if (/병원|메디컬|의원|요양/.test(t)) return 'a_medical';
+    if (/공장|산업|화학|케미칼|오토텍|엘텍|수산|냉장|유통|창고|연구소|코리아|EG|브이씨|디에스|유영/.test(t)) return 'a_factory';
+    if (/학교|초등|어린이집|사업소|공영|주차장|기숙사|커뮤니티|교회/.test(t)) return 'a_public';
+    if (/주택|다세대|다가구|아파트|주상복합|타운하우스|빌라|생활주택/.test(t)) return 'a_housing';
+    return 'a_commercial';
+  }
   if (/주간보호|데이케어|요양|재활|복지/.test(t)) return 'care';
   if (/학원|영어|수학|교육|어학/.test(t)) return 'edu';
   if (/충전/.test(t)) return 'ev';
   if (/아파트|\d+\s*평|리모델링|주거|자이|캐슬|센트리움|유니빌|팀버빌리지|꿈에그린|블루밍|메르디앙|트리비앙|다숲|유수안|황토방|빌라|주택/.test(t)) return 'apt';
   return 'shop';
 }
-export const groupLabel = (g: WorkGroup) => WORK_GROUPS.find((x) => x.key === g)!.label;
+export const groupLabel = (g: WorkGroup) => [...WORK_GROUPS, ...ARCH_GROUPS].find((x) => x.key === g)!.label;
 
 /** 공개 글 전체 (정렬 순서 → 최신순) */
 export async function listAllPublished(): Promise<Work[]> {
@@ -206,18 +230,24 @@ export async function listAllPublished(): Promise<Work[]> {
 
 /** 섞을 때 번갈아 나오는 종류 (전기차 충전은 맨 뒤에 모아서) */
 const MIX_ORDER: WorkGroup[] = ['apt', 'shop', 'edu', 'care'];
+const ARCH_MIX: WorkGroup[] = ['a_factory', 'a_medical', 'a_housing', 'a_public', 'a_commercial'];
 
 /** 아파트 → 상업공간 → 학원 → 주간보호 순으로 한 건씩 돌아가며 섞기 (각 종류 안에서는 원래 순서 유지) */
 export function mixWorks(items: Work[]): Work[] {
-  const buckets = new Map<WorkGroup, Work[]>(WORK_GROUPS.map((g) => [g.key, []]));
+  const buckets = new Map<WorkGroup, Work[]>([...WORK_GROUPS, ...ARCH_GROUPS].map((g) => [g.key, []]));
   for (const w of items) buckets.get(groupOf(w))!.push(w);
   const out: Work[] = [];
-  while (MIX_ORDER.some((k) => buckets.get(k)!.length))
-    for (const k of MIX_ORDER) {
-      const b = buckets.get(k)!;
-      if (b.length) out.push(b.shift()!);
-    }
-  return out.concat(buckets.get('ev')!);
+  const roll = (order: WorkGroup[]) => {
+    while (order.some((k) => buckets.get(k)!.length))
+      for (const k of order) {
+        const b = buckets.get(k)!;
+        if (b.length) out.push(b.shift()!);
+      }
+  };
+  roll(MIX_ORDER);
+  out.push(...buckets.get('ev')!);
+  roll(ARCH_MIX);
+  return out;
 }
 
 /** 무작위 섞기 (첫 화면 슬라이드용) */
