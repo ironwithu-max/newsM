@@ -151,17 +151,20 @@ const values = [
     </div>
 
     <!-- 픽스홈 배너 (미남테크가 운영하는 집수리 서비스) -->
-    <a class="fxb" href="https://fixhome.ai.kr/" target="_blank" rel="noopener">
+    <div class="fxb">
       <div class="fxb__wrap">
-        <span class="fxb__logo"><img src="/images/fixhome-logo.png" alt="픽스홈 FIXHOME" width="159" height="60" /></span>
-        <span class="fxb__text">
-          <span class="fxb__kicker"><b>생활수리</b><b>긴급수리</b></span>
-          <strong class="fxb__title">집수리의 모든 것, <em>픽스홈</em></strong>
-          <span class="fxb__sub"><span class="fxb__sub-long">생활 속 작은 고장부터 급한 수리까지 — 미남테크가 운영하는 집수리 서비스</span><span class="fxb__sub-short">생활 속 작은 고장부터 긴급 수리까지</span></span>
-        </span>
-        <span class="fxb__cta"><span class="fxb__cta-word">픽스홈 </span>바로가기 →</span>
+        <a class="fxb__logo" href="https://fixhome.ai.kr/" target="_blank" rel="noopener" aria-label="픽스홈 바로가기">
+          <img src="/images/fixhome-wordmark.png" alt="FIXHOME 픽스홈" width="218" height="32" />
+        </a>
+        <span class="fxb__kicker"><b>생활수리</b><b>긴급수리</b></span>
+        <strong class="fxb__title">집수리의 모든 것, <em>픽스홈</em></strong>
+        <a class="fxb__cta" href="https://fixhome.ai.kr/" target="_blank" rel="noopener">픽스홈 바로가기 →</a>
+        <p class="fxb__sub">
+          생활 속 작은 고장부터 급한 수리까지 미남테크 집수리 서비스
+          <a class="fxb__recruit" href="/blog/2026-07-29-fixhome-partner-recruit/">(전문 기사 모집)</a>
+        </p>
       </div>
-    </a>
+    </div>
   </section>
   <!-- ───────── 사업분야 ───────── -->
   <section id="business" class="sec sec--first">
@@ -601,47 +604,42 @@ const values = [
     }
   }
 
-  /* 픽스홈 배너 */
+  /* 픽스홈 배너 — 왼쪽 로고(두 줄) | 1줄: 생활수리·긴급수리(+제목) · 바로가기 | 2줄: 설명 */
   .fxb {
     position: relative;
-    display: block;
-    text-decoration: none;
-    color: var(--ink);
     background: linear-gradient(90deg, #fff6ec 0%, #ffffff 45%, #eefaf0 100%);
     border-top: 3px solid transparent;
     border-image: linear-gradient(90deg, #ff6a00, #f7a81b 40%, #7cc520 65%, #1faa47) 1;
+    color: var(--ink);
   }
   .fxb__wrap {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 0.4rem 1.2rem;
-    display: flex;
+    padding: 0.3rem 1.2rem;
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    grid-template-areas:
+      'logo kicker title cta'
+      'logo sub sub cta';
     align-items: center;
-    gap: 1rem;
+    gap: 0.05rem 0.9rem;
   }
   .fxb__logo {
-    flex: 0 0 auto;
+    grid-area: logo;
     display: flex;
     align-items: center;
-    padding: 0.2rem 0.5rem;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(31, 170, 71, 0.12);
+    padding-right: 0.9rem;
+    border-right: 1px solid rgba(33, 29, 26, 0.12);
+    align-self: stretch;
   }
   .fxb__logo img {
     display: block;
-    height: 32px;
+    height: 26px;
     width: auto;
     border-radius: 0;
   }
-  .fxb__text {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
   .fxb__kicker {
+    grid-area: kicker;
     display: flex;
     gap: 0.3rem;
   }
@@ -652,14 +650,17 @@ const values = [
     border-radius: 999px;
     color: #fff;
     background: #ff6a00;
+    white-space: nowrap;
   }
   .fxb__kicker b + b {
     background: #1faa47;
   }
   .fxb__title {
-    font-size: 1.15rem;
+    grid-area: title;
+    font-size: 1rem;
     font-weight: 800;
     letter-spacing: -0.02em;
+    white-space: nowrap;
   }
   .fxb__title em {
     font-style: normal;
@@ -669,31 +670,36 @@ const values = [
     color: transparent;
   }
   .fxb__sub {
-    min-width: 0;
-    font-size: 0.84rem;
+    grid-area: sub;
+    margin: 0;
+    font-size: 0.82rem;
     color: #6b625a;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.35;
+    word-break: keep-all;
   }
-  .fxb__title {
+  .fxb__recruit {
+    color: #1a8f3c;
+    font-weight: 700;
+    text-decoration: none;
     white-space: nowrap;
   }
-  .fxb__sub-short {
-    display: none;
+  .fxb__recruit:hover {
+    text-decoration: underline;
   }
   .fxb__cta {
-    flex: 0 0 auto;
-    padding: 0.45rem 1.1rem;
+    grid-area: cta;
+    padding: 0.5rem 1.1rem;
     border-radius: 999px;
     font-weight: 800;
     font-size: 0.9rem;
     color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
     background: linear-gradient(90deg, #ff6a00, #1faa47);
     box-shadow: 0 6px 16px rgba(255, 106, 0, 0.25);
     transition: transform 0.15s;
   }
-  .fxb:hover .fxb__cta {
+  .fxb__cta:hover {
     transform: translateX(3px);
   }
 
@@ -1073,31 +1079,23 @@ const values = [
     .proc {
       grid-template-columns: 1fr;
     }
-    /* 휴대폰: 왼쪽 로고(두 줄 높이) | 1줄: 생활수리·긴급수리 + 바로가기 | 2줄: 설명 */
+    /* 휴대폰: 제목은 빼고 로고 | 1줄 생활수리·긴급수리·바로가기 | 2줄 설명 */
     .fxb__wrap {
-      display: grid;
       grid-template-columns: auto 1fr auto;
       grid-template-areas:
         'logo kicker cta'
         'logo sub sub';
-      align-items: center;
-      gap: 0.3rem 0.5rem;
+      gap: 0.3rem 0.55rem;
       padding: 0.5rem 0.8rem;
     }
-    .fxb__text {
-      display: contents;
-    }
     .fxb__logo {
-      grid-area: logo;
-      align-self: stretch;
-      padding: 0.25rem 0.4rem;
-      border-radius: 8px;
+      padding-right: 0.55rem;
     }
     .fxb__logo img {
-      height: 38px;
+      height: 15px;
     }
-    .fxb__kicker {
-      grid-area: kicker;
+    .fxb__title {
+      display: none;
     }
     .fxb__kicker {
       gap: 0.25rem;
@@ -1105,28 +1103,15 @@ const values = [
     .fxb__kicker b {
       font-size: 0.66rem;
       padding: 0.1rem 0.45rem;
-      white-space: nowrap;
-    }
-    .fxb__title,
-    .fxb__sub-long {
-      display: none;
     }
     .fxb__sub {
-      grid-area: sub;
-      font-size: 0.76rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .fxb__sub-short {
-      display: inline;
+      font-size: 0.74rem;
+      line-height: 1.4;
     }
     .fxb__cta {
-      grid-area: cta;
       padding: 0.32rem 0.7rem;
       font-size: 0.76rem;
       box-shadow: none;
-      white-space: nowrap;
     }
     .hero__wrap {
       padding: 1.6rem 1.2rem 1.4rem;
