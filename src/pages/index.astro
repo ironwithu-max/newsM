@@ -153,16 +153,16 @@ const values = [
     <!-- 픽스홈 배너 (미남테크가 운영하는 집수리 서비스) -->
     <div class="fxb">
       <div class="fxb__wrap">
-        <a class="fxb__logo" href="https://fixhome.ai.kr/" target="_blank" rel="noopener" aria-label="픽스홈 바로가기">
+        <a class="fxb__go" href="https://fixhome.ai.kr/" target="_blank" rel="noopener">
           <img src="/images/fixhome-wordmark.png" alt="FIXHOME 픽스홈" width="218" height="32" />
+          <span>바로가기 →</span>
         </a>
-        <span class="fxb__kicker"><b>생활수리</b><i>·</i><b>긴급수리</b></span>
-        <strong class="fxb__title">집수리의 모든 것, <em>픽스홈</em></strong>
-        <a class="fxb__cta" href="https://fixhome.ai.kr/" target="_blank" rel="noopener" aria-label="픽스홈 바로가기"><img src="/images/fixhome-wordmark.png" alt="" width="109" height="16" /><span>바로가기</span></a>
-        <p class="fxb__sub">
-          생활 속 작은 고장부터 급한 수리까지 미남테크 집수리 서비스
-          <a class="fxb__recruit" href="/blog/2026-07-29-fixhome-partner-recruit/">(전문 기사 모집)</a>
-        </p>
+        <div class="fxb__text">
+          <p class="fxb__line1">생활 속 작은 고장부터 급한 수리까지 미남테크 집수리 서비스</p>
+          <a class="fxb__line2" href="/blog/2026-07-29-fixhome-partner-recruit/">
+            <b class="o">생활수리</b><i>·</i><b class="g">긴급수리</b> 각 분야 전문 기사님을 모십니다.
+          </a>
+        </div>
       </div>
     </div>
   </section>
@@ -604,7 +604,7 @@ const values = [
     }
   }
 
-  /* 픽스홈 배너 — 왼쪽 로고(두 줄) | 1줄: 생활수리·긴급수리(+제목) · 바로가기 | 2줄: 설명 */
+  /* 픽스홈 배너 — 왼쪽: 로고 + 바로가기 | 오른쪽 1줄: 서비스 소개, 2줄: 기사 모집 */
   .fxb {
     position: relative;
     background: linear-gradient(90deg, #fff6ec 0%, #ffffff 45%, #eefaf0 100%);
@@ -615,110 +615,74 @@ const values = [
   .fxb__wrap {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 0.3rem 1.2rem;
-    display: grid;
-    grid-template-columns: auto auto 1fr auto;
-    grid-template-areas:
-      'logo kicker title cta'
-      'logo sub sub cta';
-    align-items: center;
-    gap: 0.05rem 0.9rem;
-  }
-  .fxb__logo {
-    grid-area: logo;
+    padding: 0.4rem 1.2rem;
     display: flex;
     align-items: center;
-    padding-right: 0.9rem;
+    gap: 1.2rem;
+  }
+  .fxb__go {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding-right: 1.2rem;
     border-right: 1px solid rgba(33, 29, 26, 0.12);
-    align-self: stretch;
+    text-decoration: none;
   }
-  .fxb__logo img {
+  .fxb__go img {
     display: block;
-    height: 26px;
+    height: 24px;
     width: auto;
     border-radius: 0;
   }
-  .fxb__kicker {
-    grid-area: kicker;
-    display: flex;
-    align-items: baseline;
-    gap: 0.3rem;
-    white-space: nowrap;
-  }
-  .fxb__kicker b {
-    font-size: 0.95rem;
-    font-weight: 900;
-    letter-spacing: -0.02em;
-    color: #ff6a00;
-  }
-  .fxb__kicker b:last-child {
-    color: #1faa47;
-  }
-  .fxb__kicker i {
-    font-style: normal;
-    color: #b9b0a5;
-    font-weight: 700;
-  }
-  .fxb__title {
-    grid-area: title;
-    font-size: 1rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    white-space: nowrap;
-  }
-  .fxb__title em {
-    font-style: normal;
-    background: linear-gradient(90deg, #ff6a00, #1faa47);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .fxb__sub {
-    grid-area: sub;
-    margin: 0;
-    font-size: 0.82rem;
-    color: #6b625a;
-    line-height: 1.35;
-    word-break: keep-all;
-  }
-  .fxb__recruit {
-    color: #1a8f3c;
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .fxb__recruit:hover {
-    text-decoration: underline;
-  }
-  .fxb__cta {
-    grid-area: cta;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 1rem;
-    border-radius: 999px;
-    background: #fff;
-    border: 2px solid #1faa47;
-    box-shadow: 0 4px 14px rgba(31, 170, 71, 0.18);
-    text-decoration: none;
-    white-space: nowrap;
-    transition: transform 0.15s;
-  }
-  .fxb__cta img {
-    display: block;
-    height: 16px;
-    width: auto;
-    border-radius: 0;
-  }
-  .fxb__cta span {
+  .fxb__go span {
     font-size: 0.95rem;
     font-weight: 900;
     letter-spacing: -0.03em;
     color: #1faa47;
-    line-height: 1;
+    line-height: 1.1;
   }
-  .fxb__cta:hover {
-    transform: translateX(3px);
+  .fxb__go:hover span {
+    color: #ff6a00;
+  }
+  .fxb__text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    word-break: keep-all;
+  }
+  .fxb__line1 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+  .fxb__line2 {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #5f574f;
+    text-decoration: none;
+    line-height: 1.35;
+  }
+  .fxb__line2:hover {
+    text-decoration: underline;
+  }
+  .fxb__line2 b {
+    font-weight: 900;
+  }
+  .fxb__line2 .o {
+    color: #ff6a00;
+  }
+  .fxb__line2 .g {
+    color: #1faa47;
+  }
+  .fxb__line2 i {
+    font-style: normal;
+    color: #b9b0a5;
+    margin: 0 0.15rem;
   }
 
   /* 첫 화면에 사업분야 + 시공사례 첫 줄까지 보이도록 촘촘하게 */
@@ -1097,45 +1061,25 @@ const values = [
     .proc {
       grid-template-columns: 1fr;
     }
-    /* 휴대폰: 제목은 빼고 로고 | 1줄 생활수리·긴급수리·바로가기 | 2줄 설명 */
+    /* 휴대폰: 같은 배치, 크기만 줄임 */
     .fxb__wrap {
-      grid-template-columns: auto 1fr auto;
-      grid-template-areas:
-        'logo kicker cta'
-        'logo sub sub';
-      gap: 0.3rem 0.55rem;
-      padding: 0.5rem 0.8rem;
+      gap: 0.7rem;
+      padding: 0.45rem 0.8rem;
     }
-    .fxb__logo {
-      padding-right: 0.55rem;
+    .fxb__go {
+      padding-right: 0.7rem;
     }
-    .fxb__logo img {
+    .fxb__go img {
       height: 15px;
     }
-    .fxb__title {
-      display: none;
-    }
-    .fxb__kicker {
-      gap: 0.2rem;
-    }
-    .fxb__kicker b {
-      font-size: 0.82rem;
-    }
-    .fxb__sub {
+    .fxb__go span {
       font-size: 0.74rem;
-      line-height: 1.4;
     }
-    .fxb__cta {
-      padding: 0.3rem 0.6rem;
-      gap: 0.3rem;
-      border-width: 1.5px;
-      box-shadow: none;
+    .fxb__line1 {
+      font-size: 0.76rem;
     }
-    .fxb__cta img {
-      height: 11px;
-    }
-    .fxb__cta span {
-      font-size: 0.74rem;
+    .fxb__line2 {
+      font-size: 0.72rem;
     }
     .hero__wrap {
       padding: 1.6rem 1.2rem 1.4rem;
