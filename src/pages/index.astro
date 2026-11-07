@@ -159,7 +159,7 @@ const values = [
           <strong class="fxb__title">집수리의 모든 것, <em>픽스홈</em></strong>
           <span class="fxb__sub">생활 속 작은 고장부터 급한 수리까지 — 미남테크가 운영하는 집수리 서비스</span>
         </span>
-        <span class="fxb__cta">픽스홈 바로가기 →</span>
+        <span class="fxb__cta"><span class="fxb__cta-word">픽스홈 </span>바로가기 →</span>
       </div>
     </a>
   </section>
@@ -1070,33 +1070,38 @@ const values = [
     .proc {
       grid-template-columns: 1fr;
     }
-    .fxb__text {
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 0.15rem 0.6rem;
-    }
-    .fxb__sub {
-      flex-basis: 100%;
-      white-space: normal;
-    }
+    /* 휴대폰: 픽스홈 배너를 한 줄로 납작하게 */
     .fxb__wrap {
-      flex-wrap: wrap;
-      gap: 0.6rem 0.8rem;
-      padding: 0.7rem 1.2rem 0.8rem;
+      gap: 0.55rem;
+      padding: 0.45rem 0.9rem;
+    }
+    .fxb__logo {
+      padding: 0.15rem 0.35rem;
+      border-radius: 8px;
     }
     .fxb__logo img {
-      height: 34px;
+      height: 24px;
+    }
+    .fxb__text {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.1rem;
+    }
+    .fxb__kicker b {
+      font-size: 0.62rem;
+      padding: 0.05rem 0.4rem;
     }
     .fxb__title {
-      font-size: 1.02rem;
+      font-size: 0.9rem;
     }
-    .fxb__sub {
-      font-size: 0.78rem;
+    .fxb__sub,
+    .fxb__cta-word {
+      display: none;
     }
     .fxb__cta {
-      flex-basis: 100%;
-      text-align: center;
-      padding: 0.55rem 1rem;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.78rem;
+      box-shadow: none;
     }
     .hero__wrap {
       padding: 1.6rem 1.2rem 1.4rem;
