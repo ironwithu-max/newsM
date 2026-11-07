@@ -160,7 +160,7 @@ const values = [
         <div class="fxb__text">
           <p class="fxb__line1">생활 속 작은 고장부터 급한 수리까지 미남테크 집수리 서비스</p>
           <a class="fxb__line2" href="/blog/2026-07-29-fixhome-partner-recruit/">
-            <b class="o">생활수리</b><i>·</i><b class="g">긴급수리</b> 각 분야 전문 기사님을 모십니다.
+            <b class="o">생활수리</b><i>·</i><b class="g">긴급수리</b> 각 분야 전문 기사님을 모십니다.<span class="fxb__enter" aria-hidden="true">↵</span>
           </a>
         </div>
       </div>
@@ -624,7 +624,7 @@ const values = [
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: flex-end;
     gap: 0.1rem;
     padding-right: 1.2rem;
     border-right: 1px solid rgba(33, 29, 26, 0.12);
@@ -683,6 +683,15 @@ const values = [
     font-style: normal;
     color: #b9b0a5;
     margin: 0 0.15rem;
+  }
+  .fxb__enter {
+    display: inline-block;
+    margin-left: 0.35rem;
+    font-size: 1.35em;
+    line-height: 1;
+    font-weight: 900;
+    color: #1faa47;
+    vertical-align: -0.12em;
   }
 
   /* 첫 화면에 사업분야 + 시공사례 첫 줄까지 보이도록 촘촘하게 */
